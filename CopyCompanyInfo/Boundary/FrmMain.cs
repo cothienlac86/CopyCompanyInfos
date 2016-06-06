@@ -87,6 +87,7 @@ namespace CopyCompanyInfo.Boundary
             try
             {
                 pcbLoading.Visible = false;
+                grbActions.Enabled = true;
                 var result = e.Result as string;
                 if (!string.IsNullOrEmpty(result))
                 {
@@ -380,6 +381,7 @@ namespace CopyCompanyInfo.Boundary
                 //        if (!buildCopyWorker.IsBusy)
                 //        {
                 //            pcbLoading.Visible = true;
+                //            grbActions.Enabled = false;
                 //            buildCopyWorker.RunWorkerAsync("http://www.thongtincongty.com/");
                 //        }
                 //    }
