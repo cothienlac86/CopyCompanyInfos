@@ -23,11 +23,18 @@ namespace CopyCompanyInfo.Boundary
         public frmMain()
         {
             InitializeComponent();
+            // Build Data Worker
             buildCopyWorker.WorkerReportsProgress = true;
             buildCopyWorker.WorkerSupportsCancellation = true;
             buildCopyWorker.DoWork += new DoWorkEventHandler(buildCopyWorker_DoWork);
             buildCopyWorker.ProgressChanged += new ProgressChangedEventHandler(buildCopyWorker_ProgressChanged);
             buildCopyWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(buildCopyWorker_RunWorkerCompleted);
+            // Copy Worker
+            copyInfoWorker.WorkerReportsProgress = true;
+            copyInfoWorker.WorkerSupportsCancellation = true;
+            copyInfoWorker.DoWork += new DoWorkEventHandler(copyInfoWorker_DoWork);
+            copyInfoWorker.ProgressChanged += new ProgressChangedEventHandler(copyInfoWorker_ProgressChanged);
+            copyInfoWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(copyInfoWorker_RunWorkerCompleted);
         }
 
         protected void buildCopyWorker_DoWork(object sender, DoWorkEventArgs e)
@@ -100,25 +107,21 @@ namespace CopyCompanyInfo.Boundary
         {
             try
             {
-
                 //List<AreaModel> lstCities = new List<AreaModel>();
 
-                //if (!buildCopyWorker.CancellationPending)
-                //{
-                //    var url = e.Argument as string;
-                //    if (!string.IsNullOrEmpty(url))
-                //    {
-                //        var cities = GetCitiesUrl(url);
-                //        if (cities.Count > 0)
-                //        {
-                //            lstCities.AddRange(cities);
-                //            foreach (var item in cities)
-                //            {
-                //                GetCitiesUrl(item.AreaUrl, item.AreaId);
-                //            }
-                //        }
-                //    }
-                //}
+                if (!copyInfoWorker.CancellationPending)
+                {
+                    var lstUrl = e.Argument as DataTable;
+                    if (lstUrl != null)
+                    {
+                        for (int i = 0; i < lstUrl.Rows.Count; i++)
+                        {
+                            Thread.Sleep(250);
+                            var url = lstUrl.Rows[i]["AreaUrl"].ToString();
+                            GetCompanyContent(url);
+                        }
+                    }
+                }
                 e.Result = "Đã hoàn thành lấy dữ liệu các tỉnh thành.";
             }
             catch (Exception ex)
@@ -145,6 +148,8 @@ namespace CopyCompanyInfo.Boundary
         {
             try
             {
+                grbActions.Enabled = true;
+                pcbLoading.Visible = false;
                 //pcbLoading.Visible = false;
                 //var result = e.Result as string;
                 //if (!string.IsNullOrEmpty(result))
@@ -257,6 +262,62 @@ namespace CopyCompanyInfo.Boundary
             return httpRequest;
         }
 
+        private void GetCompanyContent(string url)
+        {
+            List<CompanyModel> lstCompany = new List<CompanyModel>();
+            try
+            {
+                var resultHtml = GetContent(url, ".thongtincongty.com");
+                //using Html Agility Pack
+                var doc = new HtmlAgilityPack.HtmlDocument();
+                doc.LoadHtml(resultHtml);
+                // Get city sub url
+                var subUrl = "//div[@class='search-results']/a";
+                CopyLogger.Debug("\n subUrl:" + subUrl);
+                var rangeXPath = "/html/body/div/div[1]/ul/li[6]/a";
+                int startPage = 1;
+                int endPage = 0;
+                CopyLogger.Debug("\n rangeXPath:" + rangeXPath);
+                var rangeNode = doc.DocumentNode.SelectNodes(rangeXPath);
+                if (rangeNode != null)
+                {
+                    foreach (var node in rangeNode)
+                    {
+                        var rangLink = node.Attributes["href"].Value.Replace("\r", "").Replace("\n", "").Replace("&nbsp;", "").TrimStart().TrimEnd();
+                        CopyLogger.Debug("\n rangLink:" + rangLink);
+                        int index = rangLink.IndexOf("=") + 1;
+                        endPage = int.Parse(rangLink.Substring(index));
+                        CopyLogger.Debug("\n pageEnd:" + endPage);
+                    }
+                }
+                for (int i = startPage; i <= endPage; i++)
+                {
+                    foreach (HtmlNode link in doc.DocumentNode.SelectNodes(subUrl))
+                    {
+                        var company = new CompanyModel();
+                        var subLink = link.Attributes["href"].Value.TrimStart().TrimEnd();
+                        CopyLogger.Debug("\n subLink:" + subLink);
+
+                        if (!string.IsNullOrEmpty(subLink))
+                        {
+                            var subHtml = GetContent(subLink, ".thongtincongty.com");
+                            var subDoc = new HtmlAgilityPack.HtmlDocument();
+                            subDoc.LoadHtml(subHtml);
+                            var cpNameXPath = "//div[@class='jumbotron']/h4/a/span";
+                            CopyLogger.Debug("\n cpNameXPath:" + cpNameXPath);
+                            var cpContentXPath = "//div[@class='jumbotron']/text()";
+                            CopyLogger.Debug("\n cpContentXPath:" + cpContentXPath);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                CopyLogger.Error(string.Format("Trace Error:{0} \n Error Message:{1}",
+                    ex.ToString(), ex.Message));
+            }
+        }
+
         private List<AreaModel> GetCitiesUrl(string url, int parentId = 0)
         {
             //var result = String.Empty;
@@ -269,7 +330,7 @@ namespace CopyCompanyInfo.Boundary
                 doc.LoadHtml(resultHtml);
                 // Get city list url
                 var cityXPath = "//*[@id='sidebar']/div[@class='list-group']/a";
-                //Console.WriteLine("cityXPath:" + cityXPath);
+                CopyLogger.Debug("\ncityXPath:" + cityXPath);
                 // Get news by area categories
                 int cityId = 1;
                 foreach (HtmlNode link in doc.DocumentNode.SelectNodes(cityXPath))
@@ -353,10 +414,29 @@ namespace CopyCompanyInfo.Boundary
 
         private void btnCopy_Click(object sender, EventArgs e)
         {
+            string query = "SELECT * FROM tblArea";
             if (cboCity.SelectedIndex == -1)
+            {
                 MessageBox.Show("Xin hãy lựa chọn tỉnh thành để lọc tin !");
-            if (cboDistrict.SelectedIndex == -1)
-                MessageBox.Show("Xin hãy lựa chọn quận huyện để lọc tin !");
+                return;
+            }
+            var parentId = cboCity.SelectedValue;
+            query += " WHERE ParentId = " + parentId;
+            if (cboDistrict.SelectedIndex != -1)
+                query += " AND AreaId = " + cboDistrict.SelectedValue;
+            var dt = new DataTable();
+            var ds = DbHelper.ExecuteQuery(query);
+            if (ds != null)
+                dt = ds.Tables[0];
+            if (!copyInfoWorker.IsBusy)
+            {
+                if (dt.Rows.Count > 0)
+                {
+                    grbActions.Enabled = false;
+                    pcbLoading.Visible = true;
+                    copyInfoWorker.RunWorkerAsync(dt);
+                }
+            }
         }
     }
 }
