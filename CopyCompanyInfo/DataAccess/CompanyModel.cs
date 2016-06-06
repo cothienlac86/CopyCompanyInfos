@@ -16,14 +16,14 @@ namespace CopyCompanyInfo.DataAccess
 
         public CompanyModel()
         {
-            CompanyName = string.Empty;
-            CompanyAddress = string.Empty;
-            RepresentName = string.Empty;
-            RepresentPhone = string.Empty;
-            CityId = 0;
-            DistrictId = 0;
-            IssuedDate = DateTime.Now;
-            ActivitiesDate = DateTime.Now;
+            //CompanyName = string.Empty;
+            //CompanyAddress = string.Empty;
+            //RepresentName = string.Empty;
+            //RepresentPhone = string.Empty;
+            //CityId = 0;
+            //DistrictId = 0;
+            //IssuedDate = DateTime.Now;
+            //ActivitiesDate = DateTime.Now;
         }
     }
 }

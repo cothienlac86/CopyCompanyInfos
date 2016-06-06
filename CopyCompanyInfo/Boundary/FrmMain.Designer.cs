@@ -33,7 +33,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.dtIssueStart = new System.Windows.Forms.DateTimePicker();
             this.label1 = new System.Windows.Forms.Label();
-            this.chkPhoneExists = new System.Windows.Forms.CheckBox();
             this.cboDistrict = new System.Windows.Forms.ComboBox();
             this.lblDistrict = new System.Windows.Forms.Label();
             this.cboCity = new System.Windows.Forms.ComboBox();
@@ -50,6 +49,8 @@
             this.pcbLoading = new System.Windows.Forms.PictureBox();
             this.pnlLoading = new System.Windows.Forms.Panel();
             this.exportWorker = new System.ComponentModel.BackgroundWorker();
+            this.exportFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.cboEnable = new System.Windows.Forms.CheckBox();
             this.grpCopyCondition.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.grdSearchRes)).BeginInit();
             this.grbActions.SuspendLayout();
@@ -59,11 +60,11 @@
             // 
             // grpCopyCondition
             // 
+            this.grpCopyCondition.Controls.Add(this.cboEnable);
             this.grpCopyCondition.Controls.Add(this.dtIssueEnd);
             this.grpCopyCondition.Controls.Add(this.label2);
             this.grpCopyCondition.Controls.Add(this.dtIssueStart);
             this.grpCopyCondition.Controls.Add(this.label1);
-            this.grpCopyCondition.Controls.Add(this.chkPhoneExists);
             this.grpCopyCondition.Controls.Add(this.cboDistrict);
             this.grpCopyCondition.Controls.Add(this.lblDistrict);
             this.grpCopyCondition.Controls.Add(this.cboCity);
@@ -71,7 +72,7 @@
             this.grpCopyCondition.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F);
             this.grpCopyCondition.Location = new System.Drawing.Point(14, 12);
             this.grpCopyCondition.Name = "grpCopyCondition";
-            this.grpCopyCondition.Size = new System.Drawing.Size(568, 118);
+            this.grpCopyCondition.Size = new System.Drawing.Size(592, 118);
             this.grpCopyCondition.TabIndex = 0;
             this.grpCopyCondition.TabStop = false;
             this.grpCopyCondition.Text = "Điều kiện lọc";
@@ -79,18 +80,20 @@
             // dtIssueEnd
             // 
             this.dtIssueEnd.CustomFormat = "    yyyy  /  MM  / dd";
+            this.dtIssueEnd.Enabled = false;
             this.dtIssueEnd.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtIssueEnd.Location = new System.Drawing.Point(379, 60);
+            this.dtIssueEnd.Location = new System.Drawing.Point(315, 60);
             this.dtIssueEnd.Name = "dtIssueEnd";
             this.dtIssueEnd.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.dtIssueEnd.Size = new System.Drawing.Size(183, 22);
             this.dtIssueEnd.TabIndex = 8;
+            this.dtIssueEnd.Value = new System.DateTime(2016, 6, 7, 0, 0, 0, 0);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Bold);
-            this.label2.Location = new System.Drawing.Point(321, 65);
+            this.label2.Location = new System.Drawing.Point(291, 65);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(18, 16);
             this.label2.TabIndex = 7;
@@ -98,12 +101,15 @@
             // 
             // dtIssueStart
             // 
+            this.dtIssueStart.AllowDrop = true;
             this.dtIssueStart.CustomFormat = "    yyyy  /  MM  / dd";
+            this.dtIssueStart.Enabled = false;
             this.dtIssueStart.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.dtIssueStart.Location = new System.Drawing.Point(102, 60);
             this.dtIssueStart.Name = "dtIssueStart";
             this.dtIssueStart.Size = new System.Drawing.Size(183, 22);
             this.dtIssueStart.TabIndex = 6;
+            this.dtIssueStart.Value = new System.DateTime(2016, 5, 7, 0, 0, 0, 0);
             // 
             // label1
             // 
@@ -114,19 +120,10 @@
             this.label1.TabIndex = 5;
             this.label1.Text = "Ngày cấp:";
             // 
-            // chkPhoneExists
-            // 
-            this.chkPhoneExists.AutoSize = true;
-            this.chkPhoneExists.Location = new System.Drawing.Point(102, 92);
-            this.chkPhoneExists.Name = "chkPhoneExists";
-            this.chkPhoneExists.Size = new System.Drawing.Size(135, 20);
-            this.chkPhoneExists.TabIndex = 4;
-            this.chkPhoneExists.Text = "Lọc khi có số đtdd";
-            this.chkPhoneExists.UseVisualStyleBackColor = true;
-            // 
             // cboDistrict
             // 
             this.cboDistrict.DisplayMember = "AreaName";
+            this.cboDistrict.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboDistrict.FormattingEnabled = true;
             this.cboDistrict.Location = new System.Drawing.Point(379, 21);
             this.cboDistrict.Name = "cboDistrict";
@@ -170,7 +167,7 @@
             this.grdSearchRes.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.grdSearchRes.Location = new System.Drawing.Point(9, 136);
             this.grdSearchRes.Name = "grdSearchRes";
-            this.grdSearchRes.Size = new System.Drawing.Size(828, 392);
+            this.grdSearchRes.Size = new System.Drawing.Size(852, 392);
             this.grdSearchRes.TabIndex = 1;
             // 
             // grbActions
@@ -179,7 +176,7 @@
             this.grbActions.Controls.Add(this.btnSearch);
             this.grbActions.Controls.Add(this.btnSave2Db);
             this.grbActions.Controls.Add(this.btnCopy);
-            this.grbActions.Location = new System.Drawing.Point(588, 12);
+            this.grbActions.Location = new System.Drawing.Point(612, 12);
             this.grbActions.Name = "grbActions";
             this.grbActions.Size = new System.Drawing.Size(249, 118);
             this.grbActions.TabIndex = 2;
@@ -196,6 +193,7 @@
             this.btnExport.TabIndex = 15;
             this.btnExport.Text = "Xuất file";
             this.btnExport.UseVisualStyleBackColor = false;
+            this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
             // 
             // btnSearch
             // 
@@ -207,6 +205,7 @@
             this.btnSearch.TabIndex = 13;
             this.btnSearch.Text = "Tìm kiếm";
             this.btnSearch.UseVisualStyleBackColor = false;
+            this.btnSearch.Click += new System.EventHandler(this.btnSearch_Click);
             // 
             // btnSave2Db
             // 
@@ -263,12 +262,32 @@
             this.pnlLoading.Name = "pnlLoading";
             this.pnlLoading.Size = new System.Drawing.Size(321, 131);
             this.pnlLoading.TabIndex = 4;
+            this.pnlLoading.Visible = false;
+            // 
+            // exportFileDialog
+            // 
+            this.exportFileDialog.DefaultExt = "xslx";
+            this.exportFileDialog.Filter = "Excel Workbook | *.xlsx | Excel 97-2003 Workbook| *.xls";
+            this.exportFileDialog.OverwritePrompt = false;
+            // 
+            // cboEnable
+            // 
+            this.cboEnable.AutoSize = true;
+            this.cboEnable.Checked = true;
+            this.cboEnable.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cboEnable.Location = new System.Drawing.Point(102, 92);
+            this.cboEnable.Name = "cboEnable";
+            this.cboEnable.Size = new System.Drawing.Size(145, 20);
+            this.cboEnable.TabIndex = 9;
+            this.cboEnable.Text = "Enable Issued Date";
+            this.cboEnable.UseVisualStyleBackColor = true;
+            this.cboEnable.CheckedChanged += new System.EventHandler(this.cboEnable_CheckedChanged);
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(842, 536);
+            this.ClientSize = new System.Drawing.Size(874, 536);
             this.Controls.Add(this.pnlLoading);
             this.Controls.Add(this.grbActions);
             this.Controls.Add(this.grdSearchRes);
@@ -296,7 +315,6 @@
         private System.Windows.Forms.ComboBox cboCity;
         private System.Windows.Forms.ComboBox cboDistrict;
         private System.Windows.Forms.Label lblDistrict;
-        private System.Windows.Forms.CheckBox chkPhoneExists;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.DateTimePicker dtIssueStart;
         private System.Windows.Forms.Label label1;
@@ -313,6 +331,8 @@
         private System.Windows.Forms.PictureBox pcbLoading;
         private System.Windows.Forms.Panel pnlLoading;
         private System.ComponentModel.BackgroundWorker exportWorker;
+        private System.Windows.Forms.SaveFileDialog exportFileDialog;
+        private System.Windows.Forms.CheckBox cboEnable;
     }
 }
 

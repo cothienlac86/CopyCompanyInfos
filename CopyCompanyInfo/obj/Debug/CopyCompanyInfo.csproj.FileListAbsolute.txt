@@ -45,11 +45,6 @@ E:\Workspaces\Projects\CopyCompanyInfo\SourceCode\CopyCompanyInfo\trunk\CopyComp
 E:\Workspaces\Projects\CopyCompanyInfo\SourceCode\CopyCompanyInfo\trunk\CopyCompanyInfo\bin\Debug\System.Xml.dll
 E:\Workspaces\Projects\CopyCompanyInfo\SourceCode\CopyCompanyInfo\trunk\CopyCompanyInfo\bin\Debug\System.Xml.Linq.dll
 E:\Workspaces\Projects\CopyCompanyInfo\SourceCode\CopyCompanyInfo\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.csprojResolveAssemblyReference.cache
-D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\CopyCompanyInfo.exe.config
-D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.exe
-D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.pdb
-D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\CopyCompanyInfo.exe
-D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\CopyCompanyInfo.pdb
 D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\log4net.dll
 D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\Microsoft.CSharp.dll
 D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\System.Data.DataSetExtensions.dll
@@ -71,5 +66,8 @@ D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\obj\
 D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.Properties.Resources.resources
 D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.csproj.GenerateResource.Cache
 D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.csprojResolveAssemblyReference.cache
-D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\HtmlAgilityPack.pdb
-D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\HtmlAgilityPack.xml
+D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\CopyCompanyInfo.exe.config
+D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\CopyCompanyInfo.exe
+D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\CopyCompanyInfo.pdb
+D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.exe
+D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.pdb

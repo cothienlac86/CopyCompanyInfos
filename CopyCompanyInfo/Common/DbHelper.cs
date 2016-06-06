@@ -14,7 +14,6 @@ namespace CopyCompanyInfo.Common
         {
             try
             {
-
                 if (m_Connection == null)
                 {
                     m_Connection = new SQLiteConnection("Data Source=~/../Database/CompanyInfo.sqlite;Version=3;Initial Catalog=main;UseUTF16Encoding=True;");

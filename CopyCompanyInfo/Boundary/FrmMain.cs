@@ -1,12 +1,12 @@
 ﻿using CopyCompanyInfo.Common;
 using CopyCompanyInfo.DataAccess;
 using HtmlAgilityPack;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SQLite;
-using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -18,14 +18,15 @@ namespace CopyCompanyInfo.Boundary
 {
     public partial class frmMain : Form
     {
-
         #region Private Fields
-        static CompanyModel LastCompany = null;
-        static readonly log4net.ILog CopyLogger =
+
+        private static readonly log4net.ILog CopyLogger =
                     log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-        DataTable dtCity = new DataTable();
-        DataTable dtDistrict = new DataTable();
+        private static CompanyModel LastCompany = null;
+        private DataTable dtCity = new DataTable();
+        private DataTable dtDistrict = new DataTable();
+        private DataTable dtSearchRes = new DataTable();
 
         #endregion Private Fields
 
@@ -93,6 +94,8 @@ namespace CopyCompanyInfo.Boundary
         {
             try
             {
+                var percent = e.ProgressPercentage;
+                lblLoading.Text = string.Format("Đang tải dữ liệu tỉnh thành/quận huyện : {0}% ...", percent);
             }
             catch (Exception ex)
             {
@@ -105,6 +108,7 @@ namespace CopyCompanyInfo.Boundary
         {
             try
             {
+                pnlLoading.Visible = false;
                 pcbLoading.Visible = false;
                 grbActions.Enabled = true;
                 var result = e.Result as string;
@@ -139,6 +143,8 @@ namespace CopyCompanyInfo.Boundary
                         for (int i = 0; i < lstUrl.Rows.Count; i++)
                         {
                             Thread.Sleep(250);
+                            var copyPercent = (i * lstUrl.Rows.Count - 1) / 100;
+                            copyInfoWorker.ReportProgress(copyPercent);
                             var url = lstUrl.Rows[i]["AreaUrl"].ToString();
                             int cityId = int.Parse(lstUrl.Rows[i]["ParentId"].ToString());
                             int districtId = int.Parse(lstUrl.Rows[i]["AreaId"].ToString());
@@ -183,10 +189,12 @@ namespace CopyCompanyInfo.Boundary
                 if (lstModel != null)
                 {
                     lblLoading.Text = "Đã hoàn thành lọc dữ liệu...";
+                    grdSearchRes.DataSource = lstModel.ToArray();
+                    var dt = grdSearchRes.DataSource as DataTable;
                     if (!exportWorker.IsBusy)
                     {
                         copyInfoWorker.Dispose();
-                        exportWorker.RunWorkerAsync(lstModel);
+                        exportWorker.RunWorkerAsync(dt);
                     }
                 }
             }
@@ -201,10 +209,18 @@ namespace CopyCompanyInfo.Boundary
         {
             try
             {
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "Excel Workbook | *.xlsx | Excel 97-2003 Workbook| *.xls";
-                saveFileDialog.Title = "Lưu dữ liệu";
-                saveFileDialog.ShowDialog();
+                string result = string.Empty;
+                var lstParams = e.Argument as object[];
+                if (lstParams != null)
+                {
+                    var dt = lstParams[0] as DataTable;
+                    var fileName = lstParams[1] as FileInfo;
+                    if (!exportWorker.CancellationPending)
+                    {
+                        ExportListCompany2File(dt, fileName);
+                    }
+                }
+                e.Result = "Hoàn thành export dữ liệu.";
             }
             catch (Exception ex)
             {
@@ -217,6 +233,9 @@ namespace CopyCompanyInfo.Boundary
         {
             try
             {
+                var percent = e.ProgressPercentage;
+                var message = string.Format("Đang export dữ liệu :{0}% hoàn thành...", percent);
+                lblLoading.Text = message;
             }
             catch (Exception ex)
             {
@@ -229,7 +248,15 @@ namespace CopyCompanyInfo.Boundary
         {
             try
             {
+                pnlLoading.Visible = false;
+                pcbLoading.Visible = false;
+                grdSearchRes.Enabled = true;
+                grbActions.Enabled = true;
+                grpCopyCondition.Enabled = true;
+                lblLoading.Text = string.Empty;
 
+                DialogResult dialog = MessageBox.Show("Xuất dữ liệu ra excel đã hoàn thành.\n Bấm 'OK' để đóng thông báo?",
+                                        "Xác nhận yêu cầu", MessageBoxButtons.OKCancel);
             }
             catch (Exception ex)
             {
@@ -242,20 +269,14 @@ namespace CopyCompanyInfo.Boundary
 
         #region Private Methods
 
-        private void ExportData2Excel(List<CompanyModel> lstModel, string savePath)
-        {
-
-        }
-
-
         private void btnCopy_Click(object sender, EventArgs e)
         {
-            string query = "SELECT * FROM tblArea";
             if (cboCity.SelectedIndex == -1)
             {
                 MessageBox.Show("Xin hãy lựa chọn tỉnh thành để lọc tin !");
                 return;
             }
+            string query = "SELECT * FROM tblArea";
             var parentId = cboCity.SelectedValue;
             query += " WHERE ParentId = " + parentId;
             if (cboDistrict.SelectedIndex != -1)
@@ -275,6 +296,76 @@ namespace CopyCompanyInfo.Boundary
             }
         }
 
+        private void btnExport_Click(object sender, EventArgs e)
+        {
+            //exportFileDialog.FileName = "CompanyInformation_" + DateTime.Now.ToShortDateString();
+            //if (exportFileDialog.ShowDialog() == DialogResult.OK)
+            //{
+            //}
+            if (!exportWorker.IsBusy)
+            {
+                grdSearchRes.Enabled = false;
+                pnlLoading.Visible = true;
+                pcbLoading.Visible = true;
+                grbActions.Enabled = false;
+                grpCopyCondition.Enabled = false;
+                lblLoading.Text = string.Empty;
+                exportFileDialog.FileName = "CompanyInformation_" + DateTime.Now.ToShortDateString();
+                if (exportFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (!exportWorker.CancellationPending)
+                    {
+                        var fileName = exportFileDialog.FileName;
+                        var newFile = new FileInfo(fileName);
+                        if (newFile.Exists)
+                        {
+                            newFile.Delete();  // ensures we create a new workbook
+                            newFile = new FileInfo(fileName);
+                        }
+                        object[] objParams = new object[2];
+                        objParams[0] = dtSearchRes;
+                        objParams[1] = newFile;
+                        exportWorker.RunWorkerAsync(objParams);
+                    }
+                }
+            }
+        }
+
+        private void btnSearch_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string query = " SELECT * FROM tblCompanyInfo ";
+                if (cboCity.SelectedIndex == -1)
+                {
+                    MessageBox.Show("Xin hãy chọn lựa chọn tỉnh thành để tìm kiếm thông tin !",
+                                        "Thông báo", MessageBoxButtons.OK);
+                    cboCity.Focus();
+                    return;
+                }
+                query += string.Format(" WHERE CityId = {0}", cboCity.SelectedValue);
+                if (cboDistrict.SelectedIndex != -1)
+                {
+                    query += string.Format(" AND DistrictId = {0}", cboDistrict.SelectedValue);
+                }
+                if (dtIssueEnd.Enabled && dtIssueStart.Enabled)
+                {
+                    query += string.Format(" AND IssuedDate <= '{0}' AND IssuedDate >= '{1}'", dtIssueEnd.Value, dtIssueStart.Value);
+                }
+                query += " AND RepresentPhone != '' ";
+                dtSearchRes.Clear();
+                var ds = DbHelper.ExecuteQuery(query);
+                if (ds != null)
+                    dtSearchRes = ds.Tables[0];
+                grdSearchRes.DataSource = dtSearchRes;
+            }
+            catch (Exception ex)
+            {
+                CopyLogger.Error(string.Format("Trace Error:{0} \n Error Message:{1}",
+                     ex.ToString(), ex.Message));
+            }
+        }
+
         private void cboCity_SelectedIndexChanged(object sender, EventArgs e)
         {
             int idx = cboCity.SelectedIndex;
@@ -285,6 +376,100 @@ namespace CopyCompanyInfo.Boundary
                 dtDistrict = ds.Tables[0];
             cboDistrict.DataSource = dtDistrict;
             cboDistrict.SelectedIndex = -1;
+        }
+
+        private void cboEnable_CheckedChanged(object sender, EventArgs e)
+        {
+            dtIssueStart.Enabled = true;
+            dtIssueEnd.Enabled = true;
+        }
+
+        private void ExportListCompany2File(List<CompanyModel> lstModel, FileInfo filePath)
+        {
+            using (ExcelPackage package = new ExcelPackage(filePath))
+            {
+                // add a new worksheet to the empty workbook
+                ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Company Informations");
+                //Add the headers
+                worksheet.Cells[2, 1].Value = "ID";
+                worksheet.Cells[2, 2].Value = "CompanyName";
+                worksheet.Cells[2, 3].Value = "CompanyAddress";
+                worksheet.Cells[2, 4].Value = "RepresentName";
+                worksheet.Cells[2, 5].Value = "RepresentPhone";
+                worksheet.Cells[2, 6].Value = "IssuedDate";
+                worksheet.Cells[2, 7].Value = "ActivitiesDate";
+                int rowId = 3;
+                for (int i = 0; i < lstModel.Count; i++)
+                {
+                    worksheet.Cells[rowId, 1].Value = lstModel[i].Id;
+                    worksheet.Cells[rowId, 2].Value = lstModel[i].CompanyName;
+                    worksheet.Cells[rowId, 3].Value = lstModel[i].CompanyAddress;
+                    worksheet.Cells[rowId, 4].Value = lstModel[i].RepresentName;
+                    worksheet.Cells[rowId, 5].Value = lstModel[i].RepresentPhone;
+                    worksheet.Cells[rowId, 6].Value = lstModel[i].IssuedDate;
+                    worksheet.Cells[rowId, 7].Value = lstModel[i].ActivitiesDate;
+                    rowId++;
+                    var copyPercent = (i * lstModel.Count - 1) / 100;
+                    exportWorker.ReportProgress(copyPercent);
+                }
+                worksheet.Cells.AutoFitColumns(0);  //Autofit columns for all cells
+                package.Workbook.Properties.Title = "Company Informations";
+                package.Workbook.Properties.Author = "Copyright VuThanh1986 Allright Reverses";
+                // set some extended property values
+                package.Workbook.Properties.Company = "VTH Inc.";
+
+                // set some custom property values
+                package.Workbook.Properties.SetCustomPropertyValue("Checked by", "VuThanh");
+                package.Workbook.Properties.SetCustomPropertyValue("AssemblyName", "EPPlus");
+                package.Save();
+            }
+        }
+
+        private void ExportListCompany2File(DataTable dtResult, FileInfo filePath)
+        {
+            using (ExcelPackage package = new ExcelPackage(filePath))
+            {
+                // add a new worksheet to the empty workbook
+                ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Company Informations");
+                //Add the headers
+                worksheet.Cells[1, 1, 1, 6].Merge = true;
+                worksheet.Cells[1, 1].Style.Font.Size = 12;
+                worksheet.Cells[1, 1].Style.Font.Bold = true;
+                worksheet.Cells[1, 1].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                worksheet.Cells[1, 1].Value = "Company Informations - " + DateTime.Now.ToShortDateString();
+                worksheet.Cells[2, 1].Value = "STT";
+                worksheet.Cells[2, 2].Value = "Tên c.ty";
+                worksheet.Cells[2, 3].Value = "Địa chỉ c.ty";
+                worksheet.Cells[2, 4].Value = "Tên người đại diện";
+                worksheet.Cells[2, 5].Value = "Số Đt người đại diện";
+                worksheet.Cells[2, 6].Value = "Ngày cấp phép";
+
+                //worksheet.Cells[2, 7].Value = "ActivitiesDate";
+                int rowId = 3;
+                for (int i = 0; i < dtResult.Rows.Count; i++)
+                {
+                    worksheet.Cells[rowId, 1].Value = i + 1;
+                    worksheet.Cells[rowId, 2].Value = (dtResult.Rows[i][1] == null) ? string.Empty : dtResult.Rows[i][1];
+                    worksheet.Cells[rowId, 3].Value = (dtResult.Rows[i][2] == null) ? string.Empty : dtResult.Rows[i][2];
+                    worksheet.Cells[rowId, 4].Value = (dtResult.Rows[i][3] == null) ? string.Empty : dtResult.Rows[i][3];
+                    worksheet.Cells[rowId, 5].Value = (dtResult.Rows[i][4] == null) ? string.Empty : dtResult.Rows[i][4];
+                    worksheet.Cells[rowId, 6].Value = (dtResult.Rows[i][5] == null) ? string.Empty : dtResult.Rows[i][5];
+                    worksheet.Cells[rowId, 6].Style.Numberformat.Format = "yyyy-MM-dd";
+                    rowId++;
+                    var copyPercent = (i * dtResult.Rows.Count - 1) / 100;
+                }
+
+                worksheet.Cells.AutoFitColumns(0);  //Autofit columns for all cells
+                package.Workbook.Properties.Title = "Company Informations";
+                package.Workbook.Properties.Author = "Copyright VuThanh1986 Allright Reverses";
+                // set some extended property values
+                package.Workbook.Properties.Company = "VTH Inc.";
+
+                // set some custom property values
+                package.Workbook.Properties.SetCustomPropertyValue("Checked by", "VuThanh");
+                package.Workbook.Properties.SetCustomPropertyValue("AssemblyName", "EPPlus");
+                package.Save();
+            }
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
@@ -347,6 +532,9 @@ namespace CopyCompanyInfo.Boundary
                 int cityId = 1;
                 foreach (HtmlNode link in doc.DocumentNode.SelectNodes(cityXPath))
                 {
+                    int total = link.LinePosition;
+                    int percent = (cityId / total) * 100;
+                    buildCopyWorker.ReportProgress(percent);
                     if (link.InnerText.TrimStart().TrimEnd() == "Toàn Quốc") continue;
                     Thread.Sleep(250);
                     var model = new AreaModel();
@@ -370,7 +558,7 @@ namespace CopyCompanyInfo.Boundary
             return lstCities;
         }
 
-        List<CompanyModel> GetCompanyContent(string url, int cityId, int districtId, bool isFinished = false)
+        private List<CompanyModel> GetCompanyContent(string url, int cityId, int districtId, bool isFinished = false)
         {
             List<CompanyModel> lstCompany = new List<CompanyModel>();
             try
@@ -402,8 +590,6 @@ namespace CopyCompanyInfo.Boundary
                 // Start loop from 1 to n page
                 for (int i = startPage; i <= endPage; i++)
                 {
-                    var copyPercent = (i * endPage) / 100;
-                    copyInfoWorker.ReportProgress(copyPercent);
                     // Start sub details to get information
                     foreach (HtmlNode link in doc.DocumentNode.SelectNodes(subUrl))
                     {
@@ -531,7 +717,6 @@ namespace CopyCompanyInfo.Boundary
                                     else
                                         company.ActivitiesDate = DateTime.Now;
                                     CopyLogger.Info("\n Ngày hoạt động::" + actDate);
-
                                 }
                             }
                             company.CityId = cityId;
@@ -547,6 +732,7 @@ namespace CopyCompanyInfo.Boundary
                                 lstCompany.Add(company);
                                 break;
                             }
+                            Thread.Sleep(250);
                             // Add to list
                             lstCompany.Add(company);
                         }
@@ -559,58 +745,6 @@ namespace CopyCompanyInfo.Boundary
                     ex.ToString(), ex.Message));
             }
             return lstCompany;
-        }
-        private void InsertItem2Db(CompanyModel model)
-        {
-            if (model != null)
-            {
-                var query = "INSERT INTO tblCompanyInfo (CompanyName, CompanyAddress, RepresentName, RepresentPhone,  IssuedDate, AcitivitiesDate, CityId, DistrictId) VALUES ";
-                query += string.Format("('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', {6}, {7});",
-                            model.CompanyName, model.CompanyAddress, model.RepresentName, model.RepresentPhone, model.IssuedDate, model.ActivitiesDate, model.CityId, model.DistrictId);
-                CopyLogger.Debug("\n Insert Query:" + query);
-                DbHelper.ExecuteNoneQuery(query);
-            }
-        }
-
-        private void InsertLastItem2Db(CompanyModel model)
-        {
-            if (model != null)
-            {
-                // Reset old data
-                var clearData = "DELETE FROM tblLastCompany";
-                DbHelper.ExecuteNoneQuery(clearData);
-                // Insert new data
-                var query = string.Format("INSERT INTO tblLastCompany (CompanyName, IssuedDate) VALUES ('{0}', '{1}')",
-                                                                        model.CompanyName, model.IssuedDate);
-                DbHelper.ExecuteNoneQuery(query);
-            }
-        }
-
-        private CompanyModel GetLastItem()
-        {
-            var query = "SELECT Id, CompanyName, IssuedDate FROM tblLastCompany";
-            var connection = DbHelper.GetConnection();
-            var model = new CompanyModel();
-            try
-            {
-                var command = new SQLiteCommand(query, connection);
-                var reader = command.ExecuteReader();
-                if (reader.NextResult())
-                {
-                    while (reader.Read())
-                    {
-                        model.Id = reader.GetInt32(1);
-                        model.CompanyName = reader.GetValue(2).ToString();
-                        model.IssuedDate = reader.GetDateTime(3);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                CopyLogger.Error(string.Format("Trace Error:{0} \n Error Message:{1}",
-                     ex.ToString(), ex.Message));
-            }
-            return model;
         }
 
         /// <summary>
@@ -678,6 +812,59 @@ namespace CopyCompanyInfo.Boundary
             return content;
         }
 
+        private CompanyModel GetLastItem()
+        {
+            var query = "SELECT Id, CompanyName, IssuedDate FROM tblLastCompany";
+            var connection = DbHelper.GetConnection();
+            var model = new CompanyModel();
+            try
+            {
+                var command = new SQLiteCommand(query, connection);
+                var reader = command.ExecuteReader();
+                if (reader.NextResult())
+                {
+                    while (reader.Read())
+                    {
+                        model.Id = reader.GetInt32(1);
+                        model.CompanyName = reader.GetValue(2).ToString();
+                        model.IssuedDate = reader.GetDateTime(3);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                CopyLogger.Error(string.Format("Trace Error:{0} \n Error Message:{1}",
+                     ex.ToString(), ex.Message));
+            }
+            return model;
+        }
+
+        private void InsertItem2Db(CompanyModel model)
+        {
+            if (model != null)
+            {
+                var query = "INSERT OR IGNORE INTO tblCompanyInfo (CompanyName, CompanyAddress, RepresentName, RepresentPhone,  IssuedDate, AcitivitiesDate, CityId, DistrictId) VALUES ";
+                query += string.Format("('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', {6}, {7}) ",
+                            model.CompanyName, model.CompanyAddress, model.RepresentName, model.RepresentPhone, model.IssuedDate, model.ActivitiesDate, model.CityId, model.DistrictId);
+                CopyLogger.Debug("\n Insert Query:" + query);
+                DbHelper.ExecuteNoneQuery(query);
+            }
+        }
+
+        private void InsertLastItem2Db(CompanyModel model)
+        {
+            if (model != null)
+            {
+                // Reset old data
+                var clearData = "DELETE FROM tblLastCompany";
+                DbHelper.ExecuteNoneQuery(clearData);
+                // Insert new data
+                var query = string.Format("INSERT INTO tblLastCompany (CompanyName, IssuedDate) VALUES ('{0}', '{1}')",
+                                                                        model.CompanyName, model.IssuedDate);
+                DbHelper.ExecuteNoneQuery(query);
+            }
+        }
+
         private HttpWebRequest TryAddCookie(WebRequest webRequest, List<Cookie> cookie)
         {
             HttpWebRequest httpRequest = webRequest as HttpWebRequest;
@@ -698,6 +885,5 @@ namespace CopyCompanyInfo.Boundary
         }
 
         #endregion Private Methods
-
     }
 }
