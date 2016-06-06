@@ -39,7 +39,7 @@
             this.cboCity = new System.Windows.Forms.ComboBox();
             this.lblCity = new System.Windows.Forms.Label();
             this.grdSearchRes = new System.Windows.Forms.DataGridView();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.grbActions = new System.Windows.Forms.GroupBox();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnSearch = new System.Windows.Forms.Button();
             this.btnSave2Db = new System.Windows.Forms.Button();
@@ -49,7 +49,7 @@
             this.copyInfoWorker = new System.ComponentModel.BackgroundWorker();
             this.grpCopyCondition.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.grdSearchRes)).BeginInit();
-            this.groupBox1.SuspendLayout();
+            this.grbActions.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pcbLoading)).BeginInit();
             this.SuspendLayout();
             // 
@@ -169,18 +169,18 @@
             this.grdSearchRes.Size = new System.Drawing.Size(828, 392);
             this.grdSearchRes.TabIndex = 1;
             // 
-            // groupBox1
+            // grbActions
             // 
-            this.groupBox1.Controls.Add(this.btnExport);
-            this.groupBox1.Controls.Add(this.btnSearch);
-            this.groupBox1.Controls.Add(this.btnSave2Db);
-            this.groupBox1.Controls.Add(this.btnCopy);
-            this.groupBox1.Location = new System.Drawing.Point(588, 12);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(249, 118);
-            this.groupBox1.TabIndex = 2;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Thao tác";
+            this.grbActions.Controls.Add(this.btnExport);
+            this.grbActions.Controls.Add(this.btnSearch);
+            this.grbActions.Controls.Add(this.btnSave2Db);
+            this.grbActions.Controls.Add(this.btnCopy);
+            this.grbActions.Location = new System.Drawing.Point(588, 12);
+            this.grbActions.Name = "grbActions";
+            this.grbActions.Size = new System.Drawing.Size(249, 118);
+            this.grbActions.TabIndex = 2;
+            this.grbActions.TabStop = false;
+            this.grbActions.Text = "Thao tác";
             // 
             // btnExport
             // 
@@ -245,7 +245,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(842, 536);
             this.Controls.Add(this.pcbLoading);
-            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.grbActions);
             this.Controls.Add(this.grdSearchRes);
             this.Controls.Add(this.grpCopyCondition);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F);
@@ -256,7 +256,7 @@
             this.grpCopyCondition.ResumeLayout(false);
             this.grpCopyCondition.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.grdSearchRes)).EndInit();
-            this.groupBox1.ResumeLayout(false);
+            this.grbActions.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pcbLoading)).EndInit();
             this.ResumeLayout(false);
 
@@ -275,7 +275,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.DateTimePicker dtIssueEnd;
         private System.Windows.Forms.DataGridView grdSearchRes;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox grbActions;
         private System.Windows.Forms.Button btnCopy;
         private System.Windows.Forms.Button btnSearch;
         private System.Windows.Forms.Button btnSave2Db;

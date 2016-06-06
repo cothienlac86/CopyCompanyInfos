@@ -44,3 +44,4 @@ E:\Workspaces\Projects\CopyCompanyInfo\SourceCode\CopyCompanyInfo\trunk\CopyComp
 E:\Workspaces\Projects\CopyCompanyInfo\SourceCode\CopyCompanyInfo\trunk\CopyCompanyInfo\bin\Debug\System.Windows.Forms.dll
 E:\Workspaces\Projects\CopyCompanyInfo\SourceCode\CopyCompanyInfo\trunk\CopyCompanyInfo\bin\Debug\System.Xml.dll
 E:\Workspaces\Projects\CopyCompanyInfo\SourceCode\CopyCompanyInfo\trunk\CopyCompanyInfo\bin\Debug\System.Xml.Linq.dll
+E:\Workspaces\Projects\CopyCompanyInfo\SourceCode\CopyCompanyInfo\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.csprojResolveAssemblyReference.cache

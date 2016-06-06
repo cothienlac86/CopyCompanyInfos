@@ -353,7 +353,10 @@ namespace CopyCompanyInfo.Boundary
 
         private void btnCopy_Click(object sender, EventArgs e)
         {
-
+            if (cboCity.SelectedIndex == -1)
+                MessageBox.Show("Xin hãy lựa chọn tỉnh thành để lọc tin !");
+            if (cboDistrict.SelectedIndex == -1)
+                MessageBox.Show("Xin hãy lựa chọn quận huyện để lọc tin !");
         }
     }
 }
