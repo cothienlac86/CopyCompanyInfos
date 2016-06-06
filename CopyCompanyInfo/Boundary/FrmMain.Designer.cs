@@ -1,6 +1,6 @@
 ﻿namespace CopyCompanyInfo.Boundary
 {
-    partial class FrmMain
+    partial class frmMain
     {
         /// <summary>
         /// Required designer variable.
@@ -44,8 +44,9 @@
             this.btnSearch = new System.Windows.Forms.Button();
             this.btnSave2Db = new System.Windows.Forms.Button();
             this.btnCopy = new System.Windows.Forms.Button();
-            this.buildCopyWorker = new System.ComponentModel.BackgroundWorker();
             this.pcbLoading = new System.Windows.Forms.PictureBox();
+            this.buildCopyWorker = new System.ComponentModel.BackgroundWorker();
+            this.copyInfoWorker = new System.ComponentModel.BackgroundWorker();
             this.grpCopyCondition.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.grdSearchRes)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -121,11 +122,13 @@
             // 
             // cboDistrict
             // 
+            this.cboDistrict.DisplayMember = "AreaName";
             this.cboDistrict.FormattingEnabled = true;
             this.cboDistrict.Location = new System.Drawing.Point(379, 21);
             this.cboDistrict.Name = "cboDistrict";
             this.cboDistrict.Size = new System.Drawing.Size(183, 24);
             this.cboDistrict.TabIndex = 3;
+            this.cboDistrict.ValueMember = "AreaId";
             // 
             // lblDistrict
             // 
@@ -138,11 +141,15 @@
             // 
             // cboCity
             // 
+            this.cboCity.DisplayMember = "AreaName";
+            this.cboCity.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboCity.FormattingEnabled = true;
             this.cboCity.Location = new System.Drawing.Point(102, 21);
             this.cboCity.Name = "cboCity";
             this.cboCity.Size = new System.Drawing.Size(183, 24);
             this.cboCity.TabIndex = 1;
+            this.cboCity.ValueMember = "AreaId";
+            this.cboCity.SelectedIndexChanged += new System.EventHandler(this.cboCity_SelectedIndexChanged);
             // 
             // lblCity
             // 
@@ -155,6 +162,7 @@
             // 
             // grdSearchRes
             // 
+            this.grdSearchRes.BackgroundColor = System.Drawing.SystemColors.Window;
             this.grdSearchRes.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.grdSearchRes.Location = new System.Drawing.Point(9, 136);
             this.grdSearchRes.Name = "grdSearchRes";
@@ -163,7 +171,6 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.pcbLoading);
             this.groupBox1.Controls.Add(this.btnExport);
             this.groupBox1.Controls.Add(this.btnSearch);
             this.groupBox1.Controls.Add(this.btnSave2Db);
@@ -177,7 +184,7 @@
             // 
             // btnExport
             // 
-            this.btnExport.BackColor = System.Drawing.SystemColors.Highlight;
+            this.btnExport.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.btnExport.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnExport.Location = new System.Drawing.Point(12, 70);
             this.btnExport.Name = "btnExport";
@@ -188,7 +195,7 @@
             // 
             // btnSearch
             // 
-            this.btnSearch.BackColor = System.Drawing.SystemColors.Highlight;
+            this.btnSearch.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.btnSearch.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnSearch.Location = new System.Drawing.Point(12, 21);
             this.btnSearch.Name = "btnSearch";
@@ -218,12 +225,13 @@
             this.btnCopy.TabIndex = 9;
             this.btnCopy.Text = "Bắt đầu lọc";
             this.btnCopy.UseVisualStyleBackColor = false;
+            this.btnCopy.Click += new System.EventHandler(this.btnCopy_Click);
             // 
             // pcbLoading
             // 
-            this.pcbLoading.BackColor = System.Drawing.Color.Transparent;
+            this.pcbLoading.BackColor = System.Drawing.SystemColors.Window;
             this.pcbLoading.Image = global::CopyCompanyInfo.CopyInfo.Loading;
-            this.pcbLoading.Location = new System.Drawing.Point(75, 11);
+            this.pcbLoading.Location = new System.Drawing.Point(338, 224);
             this.pcbLoading.Name = "pcbLoading";
             this.pcbLoading.Size = new System.Drawing.Size(123, 99);
             this.pcbLoading.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
@@ -231,18 +239,20 @@
             this.pcbLoading.TabStop = false;
             this.pcbLoading.Visible = false;
             // 
-            // FrmMain
+            // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(842, 536);
+            this.Controls.Add(this.pcbLoading);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.grdSearchRes);
             this.Controls.Add(this.grpCopyCondition);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F);
-            this.Name = "FrmMain";
+            this.Name = "frmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Quản lý thông tin công ty";
+            this.Load += new System.EventHandler(this.FrmMain_Load);
             this.grpCopyCondition.ResumeLayout(false);
             this.grpCopyCondition.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.grdSearchRes)).EndInit();
@@ -272,6 +282,7 @@
         private System.Windows.Forms.Button btnExport;
         private System.ComponentModel.BackgroundWorker buildCopyWorker;
         private System.Windows.Forms.PictureBox pcbLoading;
+        private System.ComponentModel.BackgroundWorker copyInfoWorker;
     }
 }
 
