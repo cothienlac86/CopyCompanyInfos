@@ -44,13 +44,17 @@
             this.btnSearch = new System.Windows.Forms.Button();
             this.btnSave2Db = new System.Windows.Forms.Button();
             this.btnCopy = new System.Windows.Forms.Button();
-            this.pcbLoading = new System.Windows.Forms.PictureBox();
             this.buildCopyWorker = new System.ComponentModel.BackgroundWorker();
             this.copyInfoWorker = new System.ComponentModel.BackgroundWorker();
+            this.lblLoading = new System.Windows.Forms.Label();
+            this.pcbLoading = new System.Windows.Forms.PictureBox();
+            this.pnlLoading = new System.Windows.Forms.Panel();
+            this.exportWorker = new System.ComponentModel.BackgroundWorker();
             this.grpCopyCondition.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.grdSearchRes)).BeginInit();
             this.grbActions.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pcbLoading)).BeginInit();
+            this.pnlLoading.SuspendLayout();
             this.SuspendLayout();
             // 
             // grpCopyCondition
@@ -227,24 +231,45 @@
             this.btnCopy.UseVisualStyleBackColor = false;
             this.btnCopy.Click += new System.EventHandler(this.btnCopy_Click);
             // 
+            // lblLoading
+            // 
+            this.lblLoading.AutoSize = true;
+            this.lblLoading.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Bold);
+            this.lblLoading.ForeColor = System.Drawing.Color.Crimson;
+            this.lblLoading.Location = new System.Drawing.Point(41, 101);
+            this.lblLoading.Name = "lblLoading";
+            this.lblLoading.Size = new System.Drawing.Size(0, 16);
+            this.lblLoading.TabIndex = 0;
+            this.lblLoading.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // pcbLoading
             // 
             this.pcbLoading.BackColor = System.Drawing.SystemColors.Window;
             this.pcbLoading.Image = global::CopyCompanyInfo.CopyInfo.Loading;
-            this.pcbLoading.Location = new System.Drawing.Point(338, 224);
+            this.pcbLoading.Location = new System.Drawing.Point(128, 15);
             this.pcbLoading.Name = "pcbLoading";
-            this.pcbLoading.Size = new System.Drawing.Size(123, 99);
+            this.pcbLoading.Size = new System.Drawing.Size(74, 74);
             this.pcbLoading.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.pcbLoading.TabIndex = 3;
             this.pcbLoading.TabStop = false;
             this.pcbLoading.Visible = false;
+            // 
+            // pnlLoading
+            // 
+            this.pnlLoading.BackColor = System.Drawing.SystemColors.Window;
+            this.pnlLoading.Controls.Add(this.pcbLoading);
+            this.pnlLoading.Controls.Add(this.lblLoading);
+            this.pnlLoading.Location = new System.Drawing.Point(255, 156);
+            this.pnlLoading.Name = "pnlLoading";
+            this.pnlLoading.Size = new System.Drawing.Size(321, 131);
+            this.pnlLoading.TabIndex = 4;
             // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(842, 536);
-            this.Controls.Add(this.pcbLoading);
+            this.Controls.Add(this.pnlLoading);
             this.Controls.Add(this.grbActions);
             this.Controls.Add(this.grdSearchRes);
             this.Controls.Add(this.grpCopyCondition);
@@ -258,6 +283,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.grdSearchRes)).EndInit();
             this.grbActions.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pcbLoading)).EndInit();
+            this.pnlLoading.ResumeLayout(false);
+            this.pnlLoading.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -281,8 +308,11 @@
         private System.Windows.Forms.Button btnSave2Db;
         private System.Windows.Forms.Button btnExport;
         private System.ComponentModel.BackgroundWorker buildCopyWorker;
-        private System.Windows.Forms.PictureBox pcbLoading;
         private System.ComponentModel.BackgroundWorker copyInfoWorker;
+        private System.Windows.Forms.Label lblLoading;
+        private System.Windows.Forms.PictureBox pcbLoading;
+        private System.Windows.Forms.Panel pnlLoading;
+        private System.ComponentModel.BackgroundWorker exportWorker;
     }
 }
 

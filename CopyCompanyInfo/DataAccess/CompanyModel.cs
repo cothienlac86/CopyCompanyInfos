@@ -1,4 +1,6 @@
-﻿namespace CopyCompanyInfo.DataAccess
+﻿using System;
+
+namespace CopyCompanyInfo.DataAccess
 {
     class CompanyModel
     {
@@ -9,6 +11,8 @@
         public string RepresentPhone { get; set; }
         public int CityId { get; set; }
         public int DistrictId { get; set; }
+        public DateTime IssuedDate { get; set; }
+        public DateTime ActivitiesDate { get; set; }
 
         public CompanyModel()
         {
@@ -18,6 +22,8 @@
             RepresentPhone = string.Empty;
             CityId = 0;
             DistrictId = 0;
+            IssuedDate = DateTime.Now;
+            ActivitiesDate = DateTime.Now;
         }
     }
 }

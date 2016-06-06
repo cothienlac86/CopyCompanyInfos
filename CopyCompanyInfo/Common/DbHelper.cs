@@ -9,12 +9,12 @@ namespace CopyCompanyInfo.Common
         private static readonly log4net.ILog CopyLogger =
                     log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Name);
         private static SQLiteConnection m_Connection;
-        
+
         public static SQLiteConnection GetConnection()
         {
             try
             {
-              
+
                 if (m_Connection == null)
                 {
                     m_Connection = new SQLiteConnection("Data Source=~/../Database/CompanyInfo.sqlite;Version=3;Initial Catalog=main;UseUTF16Encoding=True;");
@@ -48,12 +48,12 @@ namespace CopyCompanyInfo.Common
                 CopyLogger.Error(string.Format("Trace Error:{0} \n Error Message:{1}",
                     ex.ToString(), ex.Message));
             }
-            
+
         }
 
         public static DataSet ExecuteQuery(string statment)
         {
-            
+
             var sqlCon = GetConnection();
             DataSet result = new DataSet();
             try
@@ -78,7 +78,7 @@ namespace CopyCompanyInfo.Common
 
         public static void ExecuteNoneQuery(string statement)
         {
-            var sqlCon = GetConnection();          
+            var sqlCon = GetConnection();
             try
             {
                 var sqlCmd = new SQLiteCommand(statement, sqlCon);
@@ -116,6 +116,6 @@ namespace CopyCompanyInfo.Common
                 Close();
             }
             return result;
-        }      
+        }
     }
 }
