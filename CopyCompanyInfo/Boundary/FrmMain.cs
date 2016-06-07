@@ -187,22 +187,22 @@ namespace CopyCompanyInfo.Boundary
                 pnlLoading.Visible = false;
                 dtSearchRes.Clear();
                 ExecuteSearch();
-                var lstModel = e.Result as List<CompanyModel>;
-                var dtTable = new DataTable();
-                foreach (var item in lstModel)
-                {
-                    var row = dtTable.NewRow();
-                    row["CompanyId"] = item.CityId;
-                    row["CompanyName"] = item.CompanyName;
-                    row["CompanyAddress"] = item.CompanyAddress;
-                    row["RepresentName"] = item.RepresentName;
-                    row["RepresentPhone"] = item.RepresentPhone;
-                    row["IssuedDate"] = item.IssuedDate;
-                    row["ActivitiesDate"] = item.ActivitiesDate;
-                    row["CityId"] = item.CityId;
-                    row["DistrictId"] = item.DistrictId;
-                    dtTable.Rows.Add(row);
-                }
+                //var lstModel = e.Result as List<CompanyModel>;
+                //var dtTable = new DataTable();
+                //foreach (var item in lstModel)
+                //{
+                //    var row = dtTable.NewRow();
+                //    row["CompanyId"] = item.CityId;
+                //    row["CompanyName"] = item.CompanyName;
+                //    row["CompanyAddress"] = item.CompanyAddress;
+                //    row["RepresentName"] = item.RepresentName;
+                //    row["RepresentPhone"] = item.RepresentPhone;
+                //    row["IssuedDate"] = item.IssuedDate;
+                //    row["ActivitiesDate"] = item.ActivitiesDate;
+                //    row["CityId"] = item.CityId;
+                //    row["DistrictId"] = item.DistrictId;
+                //    dtTable.Rows.Add(row);
+                //}
                 lblLoading.Text = "Đã hoàn thành lọc dữ liệu...";
                 MessageBox.Show("Dữ liệu đã được lấy về. Ấn 'OK' để export dữ liệu..!");
                 exportFileDialog.FileName = "CompanyInformation_" + DateTime.Now.ToShortDateString();
@@ -223,7 +223,7 @@ namespace CopyCompanyInfo.Boundary
                                 newFile = new FileInfo(fileName);
                             }
                             object[] objParams = new object[2];
-                            objParams[0] = dtTable as DataTable;
+                            objParams[0] = dtSearchRes as DataTable;
                             objParams[1] = newFile as FileInfo;
                             exportWorker.RunWorkerAsync(objParams);
                             copyInfoWorker.Dispose();
@@ -694,20 +694,22 @@ namespace CopyCompanyInfo.Boundary
                                     var cpPhone = node.InnerText.Replace("Điện thoại:", "").Replace("\r", "").Replace("\n", "").
                                                                  Replace("&nbsp;", "").Replace(" ", "").TrimStart().TrimEnd();
                                     CopyLogger.Info("\n Điện thoại:" + cpPhone);
-                                    if (cpPhone.StartsWith("04", StringComparison.Ordinal) ||
-                                        cpPhone.StartsWith("08", StringComparison.Ordinal)) continue;
                                     var pattern = @"^09\d{8}$";
                                     var regex = new Regex(pattern);
-                                    if (regex.IsMatch(cpPhone))
-                                        company.RepresentPhone = cpPhone;
+                                    if (cpPhone.StartsWith("04", StringComparison.Ordinal) ||
+                                        cpPhone.StartsWith("08", StringComparison.Ordinal))
+                                        company.RepresentPhone = string.Empty;
+                                    else if (!regex.IsMatch(cpPhone))
+                                        company.RepresentPhone = string.Empty;
                                     else
-                                        continue;
+                                        company.RepresentPhone = cpPhone;
                                 }
                             }
                             else
                             {
-                                continue;
+                                company.RepresentPhone = string.Empty;
                             }
+                            if (string.IsNullOrEmpty(company.RepresentPhone)) continue;
                             // Get company address
                             var addXPath = "/html/body/div/div[1]/div[3]/text()[contains(., 'Địa chỉ:')]";
                             CopyLogger.Debug("\n addXPath:" + addXPath);
