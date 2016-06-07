@@ -149,6 +149,7 @@ namespace CopyCompanyInfo.Boundary
                             if (i == lstUrl.Rows.Count - 1)
                             {
                                 lstCompany = GetCompanyContent(url, cityId, districtId, true);
+                                break;
                             }
                             lstCompany = GetCompanyContent(url, cityId, districtId);
                         }
@@ -673,15 +674,15 @@ namespace CopyCompanyInfo.Boundary
                                 }
                             }
 
-                            if (LastCompany != null)
-                            {
-                                if ((LastCompany.CompanyName == company.CompanyName) &&
-                                    (LastCompany.CompanyAddress == company.CompanyAddress))
-                                {
-                                    copyInfoWorker.CancelAsync();
-                                    return lstCompany;
-                                }
-                            }
+                            //if (LastCompany != null)
+                            //{
+                            //    if ((LastCompany.CompanyName == company.CompanyName) &&
+                            //        (LastCompany.CompanyAddress == company.CompanyAddress))
+                            //    {
+                            //        copyInfoWorker.CancelAsync();
+                            //        return lstCompany;
+                            //    }
+                            //}
 
                             // Get company phone. If does not constain phone number => continue
                             var phoneXPath = "/html/body/div/div[1]/div[3]/text()[contains(., 'Điện thoại:')]";
@@ -729,6 +730,7 @@ namespace CopyCompanyInfo.Boundary
                             var preNameXPath = "/html/body/div/div[1]/div[3]/text()[contains(., 'Đại diện pháp luật')]";
                             CopyLogger.Debug("\n preNameXPath:" + preNameXPath);
                             var preNameNodes = subDoc.DocumentNode.SelectNodes(preNameXPath);
+
                             if (preNameNodes != null)
                             {
                                 foreach (var node in preNameNodes)
@@ -742,6 +744,7 @@ namespace CopyCompanyInfo.Boundary
                                         company.RepresentName = string.Empty;
                                 }
                             }
+                            if (string.IsNullOrEmpty(company.RepresentName)) continue;
                             // Get company activites date
                             var cpActivityDt = "/html/body/div/div[1]/div[3]/text()[contains(., 'Ngày hoạt động')]";
                             CopyLogger.Debug("\n cpActivityDt:" + cpActivityDt);
@@ -764,18 +767,24 @@ namespace CopyCompanyInfo.Boundary
                             CopyLogger.Info("\n Thành phố Id:" + cityId);
                             company.DistrictId = districtId;
                             CopyLogger.Info("\n Quận huyện Id:" + districtId);
-                            // Insert to DB
-                            InsertItem2Db(company);
+                            if(IsExistsInDb(company))
+                            {
+                                copyInfoWorker.CancelAsync();
+                                return lstCompany;
+                            }
                             // Is last item ? Insert item to DB
                             if (isFinished)
                             {
                                 InsertLastItem2Db(company);
                                 lstCompany.Add(company);
-                                break;
+                                return lstCompany;
                             }
+                            // Insert to DB
+                            InsertItem2Db(company);
+                            lstCompany.Add(company);
                             Thread.Sleep(250);
                             // Add to list
-                            lstCompany.Add(company);
+
                         }
                     }
                 }
@@ -892,17 +901,43 @@ namespace CopyCompanyInfo.Boundary
             }
         }
 
+        private bool IsExistsInDb(CompanyModel model)
+        {
+            var checkQuery = string.Format("SELECT COUNT(*) FROM tblLastCompany WHERE CompanyName = '{0}' AND RepresentName = '{1}' AND CityId = {2} AND DistrictId = {3}",
+                                                model.CompanyName, model.RepresentName, model.CityId, model.DistrictId);
+            var countVal = int.Parse(DbHelper.ExecuteScalar(checkQuery).ToString());
+            if (countVal > 0)
+                return true;
+            else
+                return false;
+        }
+
         private void InsertLastItem2Db(CompanyModel model)
         {
             if (model != null)
             {
+                var checkQuery = string.Format("SELECT COUNT(*) FROM tblLastCompany WHERE CompanyName = '{0}' AND RepresentName = '{1}' AND CityId = {2} AND DistrictId = {3}",
+                                                model.CompanyName, model.RepresentName, model.CityId, model.DistrictId);
+                var countVal = int.Parse(DbHelper.ExecuteScalar(checkQuery).ToString());
+                if (countVal > 0)
+                {
+                    var query = string.Format("UPDATE TABLE tblLastCompany SET CompanyName = '{0}', RepresentName = '{1}', IssuedDate = {2}",
+                                                     model.CompanyName, model.RepresentName, model.IssuedDate);
+                    query += string.Format(" WHERE CompanyName = '{0}' AND RepresentName = '{1}' AND CityId = {2} AND DistrictId = {3}",
+                                                    model.CompanyName, model.RepresentName, model.CityId, model.DistrictId);
+                    DbHelper.ExecuteNoneQuery(query);
+                }
+                else
+                {
+                    var query = string.Format("INSERT INTO tblLastCompany (CompanyName, RepresentName, CityId, DistrictId, IssuedDate) VALUES ('{0}', '{1}', {2}, {3}, '{4}' )",
+                                                    model.CompanyName, model.RepresentName, model.CityId, model.DistrictId, model.IssuedDate);
+                    DbHelper.ExecuteNoneQuery(query);
+                }
+
                 // Reset old data
-                var clearData = "DELETE FROM tblLastCompany";
-                DbHelper.ExecuteNoneQuery(clearData);
+                //var clearData = "DELETE FROM tblLastCompany";
+                //DbHelper.ExecuteNoneQuery(clearData);
                 // Insert new data
-                var query = string.Format("INSERT INTO tblLastCompany (CompanyName, RepresentName, IssuedDate) VALUES ('{0}', '{1}', '{2}')",
-                                                                        model.CompanyName, model.RepresentName , model.IssuedDate);
-                DbHelper.ExecuteNoneQuery(query);
             }
         }
 
