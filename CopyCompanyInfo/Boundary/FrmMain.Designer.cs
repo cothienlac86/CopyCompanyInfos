@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.grpCopyCondition = new System.Windows.Forms.GroupBox();
+            this.cboEnable = new System.Windows.Forms.CheckBox();
             this.dtIssueEnd = new System.Windows.Forms.DateTimePicker();
             this.label2 = new System.Windows.Forms.Label();
             this.dtIssueStart = new System.Windows.Forms.DateTimePicker();
@@ -41,7 +42,6 @@
             this.grbActions = new System.Windows.Forms.GroupBox();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnSearch = new System.Windows.Forms.Button();
-            this.btnSave2Db = new System.Windows.Forms.Button();
             this.btnCopy = new System.Windows.Forms.Button();
             this.buildCopyWorker = new System.ComponentModel.BackgroundWorker();
             this.copyInfoWorker = new System.ComponentModel.BackgroundWorker();
@@ -50,7 +50,6 @@
             this.pnlLoading = new System.Windows.Forms.Panel();
             this.exportWorker = new System.ComponentModel.BackgroundWorker();
             this.exportFileDialog = new System.Windows.Forms.SaveFileDialog();
-            this.cboEnable = new System.Windows.Forms.CheckBox();
             this.grpCopyCondition.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.grdSearchRes)).BeginInit();
             this.grbActions.SuspendLayout();
@@ -76,6 +75,19 @@
             this.grpCopyCondition.TabIndex = 0;
             this.grpCopyCondition.TabStop = false;
             this.grpCopyCondition.Text = "Điều kiện lọc";
+            // 
+            // cboEnable
+            // 
+            this.cboEnable.AutoSize = true;
+            this.cboEnable.Checked = true;
+            this.cboEnable.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cboEnable.Location = new System.Drawing.Point(102, 92);
+            this.cboEnable.Name = "cboEnable";
+            this.cboEnable.Size = new System.Drawing.Size(145, 20);
+            this.cboEnable.TabIndex = 9;
+            this.cboEnable.Text = "Enable Issued Date";
+            this.cboEnable.UseVisualStyleBackColor = true;
+            this.cboEnable.CheckedChanged += new System.EventHandler(this.cboEnable_CheckedChanged);
             // 
             // dtIssueEnd
             // 
@@ -174,7 +186,6 @@
             // 
             this.grbActions.Controls.Add(this.btnExport);
             this.grbActions.Controls.Add(this.btnSearch);
-            this.grbActions.Controls.Add(this.btnSave2Db);
             this.grbActions.Controls.Add(this.btnCopy);
             this.grbActions.Location = new System.Drawing.Point(612, 12);
             this.grbActions.Name = "grbActions";
@@ -187,7 +198,7 @@
             // 
             this.btnExport.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.btnExport.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Bold);
-            this.btnExport.Location = new System.Drawing.Point(12, 70);
+            this.btnExport.Location = new System.Drawing.Point(6, 65);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(110, 40);
             this.btnExport.TabIndex = 15;
@@ -199,7 +210,7 @@
             // 
             this.btnSearch.BackColor = System.Drawing.SystemColors.GradientActiveCaption;
             this.btnSearch.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Bold);
-            this.btnSearch.Location = new System.Drawing.Point(12, 21);
+            this.btnSearch.Location = new System.Drawing.Point(6, 21);
             this.btnSearch.Name = "btnSearch";
             this.btnSearch.Size = new System.Drawing.Size(110, 40);
             this.btnSearch.TabIndex = 13;
@@ -207,24 +218,13 @@
             this.btnSearch.UseVisualStyleBackColor = false;
             this.btnSearch.Click += new System.EventHandler(this.btnSearch_Click);
             // 
-            // btnSave2Db
-            // 
-            this.btnSave2Db.BackColor = System.Drawing.Color.PeachPuff;
-            this.btnSave2Db.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Bold);
-            this.btnSave2Db.Location = new System.Drawing.Point(128, 70);
-            this.btnSave2Db.Name = "btnSave2Db";
-            this.btnSave2Db.Size = new System.Drawing.Size(110, 40);
-            this.btnSave2Db.TabIndex = 14;
-            this.btnSave2Db.Text = "Lưu tin lọc";
-            this.btnSave2Db.UseVisualStyleBackColor = false;
-            // 
             // btnCopy
             // 
             this.btnCopy.BackColor = System.Drawing.Color.PeachPuff;
             this.btnCopy.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Bold);
-            this.btnCopy.Location = new System.Drawing.Point(128, 21);
+            this.btnCopy.Location = new System.Drawing.Point(122, 19);
             this.btnCopy.Name = "btnCopy";
-            this.btnCopy.Size = new System.Drawing.Size(110, 40);
+            this.btnCopy.Size = new System.Drawing.Size(121, 86);
             this.btnCopy.TabIndex = 9;
             this.btnCopy.Text = "Bắt đầu lọc";
             this.btnCopy.UseVisualStyleBackColor = false;
@@ -270,19 +270,6 @@
             this.exportFileDialog.Filter = "Excel Workbook | *.xlsx | Excel 97-2003 Workbook| *.xls";
             this.exportFileDialog.OverwritePrompt = false;
             // 
-            // cboEnable
-            // 
-            this.cboEnable.AutoSize = true;
-            this.cboEnable.Checked = true;
-            this.cboEnable.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cboEnable.Location = new System.Drawing.Point(102, 92);
-            this.cboEnable.Name = "cboEnable";
-            this.cboEnable.Size = new System.Drawing.Size(145, 20);
-            this.cboEnable.TabIndex = 9;
-            this.cboEnable.Text = "Enable Issued Date";
-            this.cboEnable.UseVisualStyleBackColor = true;
-            this.cboEnable.CheckedChanged += new System.EventHandler(this.cboEnable_CheckedChanged);
-            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -323,7 +310,6 @@
         private System.Windows.Forms.GroupBox grbActions;
         private System.Windows.Forms.Button btnCopy;
         private System.Windows.Forms.Button btnSearch;
-        private System.Windows.Forms.Button btnSave2Db;
         private System.Windows.Forms.Button btnExport;
         private System.ComponentModel.BackgroundWorker buildCopyWorker;
         private System.ComponentModel.BackgroundWorker copyInfoWorker;

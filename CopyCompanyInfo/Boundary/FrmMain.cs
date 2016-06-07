@@ -132,14 +132,12 @@ namespace CopyCompanyInfo.Boundary
         {
             try
             {
+                var lstUrl = e.Argument as DataTable;
                 var lstCompany = new List<CompanyModel>();
-
                 if (!copyInfoWorker.CancellationPending)
                 {
-                    var lstUrl = e.Argument as DataTable;
                     if (lstUrl != null)
                     {
-                        var lastItem = lstUrl.Rows.Count - 1;
                         for (int i = 0; i < lstUrl.Rows.Count; i++)
                         {
                             Thread.Sleep(250);
@@ -148,10 +146,11 @@ namespace CopyCompanyInfo.Boundary
                             var url = lstUrl.Rows[i]["AreaUrl"].ToString();
                             int cityId = int.Parse(lstUrl.Rows[i]["ParentId"].ToString());
                             int districtId = int.Parse(lstUrl.Rows[i]["AreaId"].ToString());
-                            if (i == lastItem)
+                            if (i == lstUrl.Rows.Count - 1)
+                            {
                                 lstCompany = GetCompanyContent(url, cityId, districtId, true);
-                            else
-                                lstCompany = GetCompanyContent(url, cityId, districtId);
+                            }
+                            lstCompany = GetCompanyContent(url, cityId, districtId);
                         }
                     }
                 }
@@ -185,15 +184,33 @@ namespace CopyCompanyInfo.Boundary
             {
                 grbActions.Enabled = true;
                 pcbLoading.Visible = false;
+                pnlLoading.Visible = false;
+                dtSearchRes.Clear();
+                ExecuteSearch();
                 var lstModel = e.Result as List<CompanyModel>;
-                if (lstModel != null)
+                var dtTable = new DataTable();
+                foreach (var item in lstModel)
                 {
-                    lblLoading.Text = "Đã hoàn thành lọc dữ liệu...";
-                    grdSearchRes.DataSource = lstModel.ToArray();
+                    var row = dtTable.NewRow();
+                    row["CompanyId"] = item.CityId;
+                    row["CompanyName"] = item.CompanyName;
+                    row["CompanyAddress"] = item.CompanyAddress;
+                    row["RepresentName"] = item.RepresentName;
+                    row["RepresentPhone"] = item.RepresentPhone;
+                    row["IssuedDate"] = item.IssuedDate;
+                    row["ActivitiesDate"] = item.ActivitiesDate;
+                    row["CityId"] = item.CityId;
+                    row["DistrictId"] = item.DistrictId;
+                    dtTable.Rows.Add(row);
+                }
+                lblLoading.Text = "Đã hoàn thành lọc dữ liệu...";
+                MessageBox.Show("Dữ liệu đã được lấy về. Ấn 'OK' để export dữ liệu..!");
+                exportFileDialog.FileName = "CompanyInformation_" + DateTime.Now.ToShortDateString();
+                if (dtSearchRes.Rows.Count > 0)
+                {
 
-                    MessageBox.Show("Dữ liệu đã được lấy về. Ấn 'OK' để export dữ liệu..!");
-                    exportFileDialog.FileName = "CompanyInformation_" + DateTime.Now.ToShortDateString();
                     exportFileDialog.Title = "Chọn nơi lưu trữ file";
+
                     if (exportFileDialog.ShowDialog() == DialogResult.OK)
                     {
                         if (!exportWorker.IsBusy)
@@ -206,9 +223,8 @@ namespace CopyCompanyInfo.Boundary
                                 newFile = new FileInfo(fileName);
                             }
                             object[] objParams = new object[2];
-                            var dt = grdSearchRes.DataSource as DataTable;
-                            objParams[0] = dt;
-                            objParams[1] = newFile;
+                            objParams[0] = dtTable as DataTable;
+                            objParams[1] = newFile as FileInfo;
                             exportWorker.RunWorkerAsync(objParams);
                             copyInfoWorker.Dispose();
                         }
@@ -353,35 +369,40 @@ namespace CopyCompanyInfo.Boundary
         {
             try
             {
-                string query = " SELECT * FROM tblCompanyInfo ";
-                if (cboCity.SelectedIndex == -1)
-                {
-                    MessageBox.Show("Xin hãy chọn lựa chọn tỉnh thành để tìm kiếm thông tin !",
-                                        "Thông báo", MessageBoxButtons.OK);
-                    cboCity.Focus();
-                    return;
-                }
-                query += string.Format(" WHERE CityId = {0}", cboCity.SelectedValue);
-                if (cboDistrict.SelectedIndex != -1)
-                {
-                    query += string.Format(" AND DistrictId = {0}", cboDistrict.SelectedValue);
-                }
-                if (dtIssueEnd.Enabled && dtIssueStart.Enabled)
-                {
-                    query += string.Format(" AND IssuedDate <= '{0}' AND IssuedDate >= '{1}'", dtIssueEnd.Value, dtIssueStart.Value);
-                }
-                query += " AND RepresentPhone != '' ";
-                dtSearchRes.Clear();
-                var ds = DbHelper.ExecuteQuery(query);
-                if (ds != null)
-                    dtSearchRes = ds.Tables[0];
-                grdSearchRes.DataSource = dtSearchRes;
+                ExecuteSearch();
             }
             catch (Exception ex)
             {
                 CopyLogger.Error(string.Format("Trace Error:{0} \n Error Message:{1}",
                      ex.ToString(), ex.Message));
             }
+        }
+
+        private void ExecuteSearch()
+        {
+            string query = " SELECT * FROM tblCompanyInfo ";
+            if (cboCity.SelectedIndex == -1)
+            {
+                MessageBox.Show("Xin hãy chọn lựa chọn tỉnh thành để tìm kiếm thông tin !",
+                                    "Thông báo", MessageBoxButtons.OK);
+                cboCity.Focus();
+                return;
+            }
+            query += string.Format(" WHERE CityId = {0}", cboCity.SelectedValue);
+            if (cboDistrict.SelectedIndex != -1)
+            {
+                query += string.Format(" AND DistrictId = {0}", cboDistrict.SelectedValue);
+            }
+            if (dtIssueEnd.Enabled && dtIssueStart.Enabled)
+            {
+                query += string.Format(" AND IssuedDate <= '{0}' AND IssuedDate >= '{1}'", dtIssueEnd.Value, dtIssueStart.Value);
+            }
+            query += " AND RepresentPhone != '' ";
+            dtSearchRes.Clear();
+            var ds = DbHelper.ExecuteQuery(query);
+            if (ds != null)
+                dtSearchRes = ds.Tables[0];
+            grdSearchRes.DataSource = dtSearchRes;
         }
 
         private void cboCity_SelectedIndexChanged(object sender, EventArgs e)
@@ -655,10 +676,10 @@ namespace CopyCompanyInfo.Boundary
                             if (LastCompany != null)
                             {
                                 if ((LastCompany.CompanyName == company.CompanyName) &&
-                                    (LastCompany.IssuedDate == company.IssuedDate))
+                                    (LastCompany.CompanyAddress == company.CompanyAddress))
                                 {
                                     copyInfoWorker.CancelAsync();
-                                    break;
+                                    return lstCompany;
                                 }
                             }
 
@@ -861,10 +882,10 @@ namespace CopyCompanyInfo.Boundary
         {
             if (model != null)
             {
-                var query = "INSERT OR IGNORE INTO tblCompanyInfo (CompanyName, CompanyAddress, RepresentName, RepresentPhone,  IssuedDate, AcitivitiesDate, CityId, DistrictId) VALUES ";
+                var query = "INSERT OR REPLACE INTO tblCompanyInfo (CompanyName, CompanyAddress, RepresentName, RepresentPhone,  IssuedDate, AcitivitiesDate, CityId, DistrictId) VALUES ";
                 query += string.Format("('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', {6}, {7}) ",
                             model.CompanyName, model.CompanyAddress, model.RepresentName, model.RepresentPhone, model.IssuedDate, model.ActivitiesDate, model.CityId, model.DistrictId);
-                CopyLogger.Debug("\n Insert Query:" + query);
+                CopyLogger.Info("\n Insert Query:" + query);
                 DbHelper.ExecuteNoneQuery(query);
             }
         }
@@ -877,8 +898,8 @@ namespace CopyCompanyInfo.Boundary
                 var clearData = "DELETE FROM tblLastCompany";
                 DbHelper.ExecuteNoneQuery(clearData);
                 // Insert new data
-                var query = string.Format("INSERT INTO tblLastCompany (CompanyName, IssuedDate) VALUES ('{0}', '{1}')",
-                                                                        model.CompanyName, model.IssuedDate);
+                var query = string.Format("INSERT INTO tblLastCompany (CompanyName, RepresentName, IssuedDate) VALUES ('{0}', '{1}', '{2}')",
+                                                                        model.CompanyName, model.RepresentName , model.IssuedDate);
                 DbHelper.ExecuteNoneQuery(query);
             }
         }
