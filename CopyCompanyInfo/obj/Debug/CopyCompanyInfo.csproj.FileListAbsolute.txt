@@ -71,3 +71,6 @@ D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\
 D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\CopyCompanyInfo.pdb
 D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.exe
 D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\obj\Debug\CopyCompanyInfo.pdb
+D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\EPPlus.xml
+D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\HtmlAgilityPack.pdb
+D:\Projects\CopyCompanyInfo\SourceCode\CopyCompanySrc\trunk\CopyCompanyInfo\bin\Debug\HtmlAgilityPack.xml

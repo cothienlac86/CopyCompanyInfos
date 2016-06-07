@@ -190,11 +190,28 @@ namespace CopyCompanyInfo.Boundary
                 {
                     lblLoading.Text = "Đã hoàn thành lọc dữ liệu...";
                     grdSearchRes.DataSource = lstModel.ToArray();
-                    var dt = grdSearchRes.DataSource as DataTable;
-                    if (!exportWorker.IsBusy)
+
+                    MessageBox.Show("Dữ liệu đã được lấy về. Ấn 'OK' để export dữ liệu..!");
+                    exportFileDialog.FileName = "CompanyInformation_" + DateTime.Now.ToShortDateString();
+                    exportFileDialog.Title = "Chọn nơi lưu trữ file";
+                    if (exportFileDialog.ShowDialog() == DialogResult.OK)
                     {
-                        copyInfoWorker.Dispose();
-                        exportWorker.RunWorkerAsync(dt);
+                        if (!exportWorker.IsBusy)
+                        {
+                            var fileName = exportFileDialog.FileName;
+                            var newFile = new FileInfo(fileName);
+                            if (newFile.Exists)
+                            {
+                                newFile.Delete();  // ensures we create a new workbook
+                                newFile = new FileInfo(fileName);
+                            }
+                            object[] objParams = new object[2];
+                            var dt = grdSearchRes.DataSource as DataTable;
+                            objParams[0] = dt;
+                            objParams[1] = newFile;
+                            exportWorker.RunWorkerAsync(objParams);
+                            copyInfoWorker.Dispose();
+                        }
                     }
                 }
             }
@@ -291,6 +308,7 @@ namespace CopyCompanyInfo.Boundary
                 {
                     grbActions.Enabled = false;
                     pcbLoading.Visible = true;
+                    pnlLoading.Visible = true;
                     copyInfoWorker.RunWorkerAsync(dt);
                 }
             }
