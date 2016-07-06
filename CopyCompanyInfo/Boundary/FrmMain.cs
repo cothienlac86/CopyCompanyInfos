@@ -146,11 +146,6 @@ namespace CopyCompanyInfo.Boundary
                             var url = lstUrl.Rows[i]["AreaUrl"].ToString();
                             int cityId = int.Parse(lstUrl.Rows[i]["ParentId"].ToString());
                             int districtId = int.Parse(lstUrl.Rows[i]["AreaId"].ToString());
-                            if (i == lstUrl.Rows.Count - 1)
-                            {
-                                lstCompany = GetCompanyContent(url, cityId, districtId, true);
-                                break;
-                            }
                             lstCompany = GetCompanyContent(url, cityId, districtId);
                         }
                     }
@@ -399,6 +394,7 @@ namespace CopyCompanyInfo.Boundary
                 query += string.Format(" AND IssuedDate <= '{0}' AND IssuedDate >= '{1}'", dtIssueEnd.Value, dtIssueStart.Value);
             }
             query += " AND RepresentPhone != '' ";
+            query += " ORDER BY IssuedDate DESC";
             dtSearchRes.Clear();
             var ds = DbHelper.ExecuteQuery(query);
             if (ds != null)
@@ -598,7 +594,7 @@ namespace CopyCompanyInfo.Boundary
             return lstCities;
         }
 
-        private List<CompanyModel> GetCompanyContent(string url, int cityId, int districtId, bool isFinished = false)
+        private List<CompanyModel> GetCompanyContent(string url, int cityId, int districtId)
         {
             List<CompanyModel> lstCompany = new List<CompanyModel>();
             try
@@ -630,6 +626,7 @@ namespace CopyCompanyInfo.Boundary
                 // Start loop from 1 to n page
                 for (int i = startPage; i <= endPage; i++)
                 {
+                    if (i == 6) return lstCompany;
                     // Start sub details to get information
                     foreach (HtmlNode link in doc.DocumentNode.SelectNodes(subUrl))
                     {
@@ -673,17 +670,6 @@ namespace CopyCompanyInfo.Boundary
                                     CopyLogger.Info("\n Ngày cấp giấy phép:" + issDate);
                                 }
                             }
-
-                            //if (LastCompany != null)
-                            //{
-                            //    if ((LastCompany.CompanyName == company.CompanyName) &&
-                            //        (LastCompany.CompanyAddress == company.CompanyAddress))
-                            //    {
-                            //        copyInfoWorker.CancelAsync();
-                            //        return lstCompany;
-                            //    }
-                            //}
-
                             // Get company phone. If does not constain phone number => continue
                             var phoneXPath = "/html/body/div/div[1]/div[3]/text()[contains(., 'Điện thoại:')]";
                             CopyLogger.Debug("\n phoneXPath:" + phoneXPath);
@@ -772,19 +758,11 @@ namespace CopyCompanyInfo.Boundary
                                 copyInfoWorker.CancelAsync();
                                 return lstCompany;
                             }
-                            // Is last item ? Insert item to DB
-                            if (isFinished)
-                            {
-                                InsertLastItem2Db(company);
-                                lstCompany.Add(company);
-                                return lstCompany;
-                            }
                             // Insert to DB
                             InsertItem2Db(company);
+                            // Add to list
                             lstCompany.Add(company);
                             Thread.Sleep(250);
-                            // Add to list
-
                         }
                     }
                 }
@@ -903,7 +881,7 @@ namespace CopyCompanyInfo.Boundary
 
         private bool IsExistsInDb(CompanyModel model)
         {
-            var checkQuery = string.Format("SELECT COUNT(*) FROM tblLastCompany WHERE CompanyName = '{0}' AND RepresentName = '{1}' AND CityId = {2} AND DistrictId = {3}",
+            var checkQuery = string.Format("SELECT COUNT(*) FROM tblCompanyInfo WHERE CompanyName = '{0}' AND RepresentName = '{1}' AND CityId = {2} AND DistrictId = {3}",
                                                 model.CompanyName, model.RepresentName, model.CityId, model.DistrictId);
             var countVal = int.Parse(DbHelper.ExecuteScalar(checkQuery).ToString());
             if (countVal > 0)
@@ -933,11 +911,6 @@ namespace CopyCompanyInfo.Boundary
                                                     model.CompanyName, model.RepresentName, model.CityId, model.DistrictId, model.IssuedDate);
                     DbHelper.ExecuteNoneQuery(query);
                 }
-
-                // Reset old data
-                //var clearData = "DELETE FROM tblLastCompany";
-                //DbHelper.ExecuteNoneQuery(clearData);
-                // Insert new data
             }
         }
 
