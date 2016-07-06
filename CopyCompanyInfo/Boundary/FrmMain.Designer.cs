@@ -79,8 +79,6 @@
             // cboEnable
             // 
             this.cboEnable.AutoSize = true;
-            this.cboEnable.Checked = true;
-            this.cboEnable.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cboEnable.Location = new System.Drawing.Point(102, 92);
             this.cboEnable.Name = "cboEnable";
             this.cboEnable.Size = new System.Drawing.Size(145, 20);

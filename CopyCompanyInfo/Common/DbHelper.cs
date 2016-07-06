@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SQLite;
 using System.Data;
+using System.IO;
 
 namespace CopyCompanyInfo.Common
 {
@@ -14,9 +15,10 @@ namespace CopyCompanyInfo.Common
         {
             try
             {
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory + @"\Database\CompanyInfo.sqlite";
                 if (m_Connection == null)
                 {
-                    m_Connection = new SQLiteConnection("Data Source=~/../Database/CompanyInfo.sqlite;Version=3;Initial Catalog=main;UseUTF16Encoding=True;");
+                    m_Connection = new SQLiteConnection(string.Format("Data Source={0};Version=3;Initial Catalog=main;UseUTF16Encoding=True;", baseDir));
                     if (m_Connection.State == ConnectionState.Closed)
                         m_Connection.Open();
                 }
@@ -26,7 +28,7 @@ namespace CopyCompanyInfo.Common
                         m_Connection.Open();
                 }
             }
-            catch (Exception)
+            catch
             {
                 throw;
             }
@@ -54,14 +56,16 @@ namespace CopyCompanyInfo.Common
         {
 
             var sqlCon = GetConnection();
+            var sqlCmd = new SQLiteCommand();
             DataSet result = new DataSet();
             try
             {
-                var sqlCmd = new SQLiteCommand(statment, sqlCon);
+                sqlCmd.Connection = sqlCon;
+                sqlCmd.CommandText = statment;
                 var sqlAdap = new SQLiteDataAdapter(sqlCmd);
                 if (sqlAdap != null)
                     sqlAdap.Fill(result);
-                sqlCmd.Dispose();
+                sqlAdap.Dispose();
             }
             catch (Exception ex)
             {
@@ -71,6 +75,7 @@ namespace CopyCompanyInfo.Common
             finally
             {
                 Close();
+                sqlCmd.Dispose();
             }
             return result;
         }
@@ -78,11 +83,10 @@ namespace CopyCompanyInfo.Common
         public static void ExecuteNoneQuery(string statement)
         {
             var sqlCon = GetConnection();
+            var sqlCmd = new SQLiteCommand(statement, sqlCon);
             try
             {
-                var sqlCmd = new SQLiteCommand(statement, sqlCon);
                 sqlCmd.ExecuteNonQuery();
-                sqlCmd.Dispose();
             }
             catch (Exception ex)
             {
@@ -91,6 +95,7 @@ namespace CopyCompanyInfo.Common
             }
             finally
             {
+                sqlCmd.Dispose();
                 Close();
             }
         }
