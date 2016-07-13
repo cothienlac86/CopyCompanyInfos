@@ -50,6 +50,7 @@
             this.pnlLoading = new System.Windows.Forms.Panel();
             this.exportWorker = new System.ComponentModel.BackgroundWorker();
             this.exportFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.button1 = new System.Windows.Forms.Button();
             this.grpCopyCondition.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.grdSearchRes)).BeginInit();
             this.grbActions.SuspendLayout();
@@ -187,7 +188,7 @@
             this.grbActions.Controls.Add(this.btnCopy);
             this.grbActions.Location = new System.Drawing.Point(612, 12);
             this.grbActions.Name = "grbActions";
-            this.grbActions.Size = new System.Drawing.Size(249, 118);
+            this.grbActions.Size = new System.Drawing.Size(211, 118);
             this.grbActions.TabIndex = 2;
             this.grbActions.TabStop = false;
             this.grbActions.Text = "Thao tác";
@@ -222,7 +223,7 @@
             this.btnCopy.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnCopy.Location = new System.Drawing.Point(122, 19);
             this.btnCopy.Name = "btnCopy";
-            this.btnCopy.Size = new System.Drawing.Size(121, 86);
+            this.btnCopy.Size = new System.Drawing.Size(82, 86);
             this.btnCopy.TabIndex = 9;
             this.btnCopy.Text = "Bắt đầu lọc";
             this.btnCopy.UseVisualStyleBackColor = false;
@@ -268,11 +269,24 @@
             this.exportFileDialog.Filter = "Excel Workbook | *.xlsx | Excel 97-2003 Workbook| *.xls";
             this.exportFileDialog.OverwritePrompt = false;
             // 
+            // button1
+            // 
+            this.button1.BackColor = System.Drawing.Color.DarkSalmon;
+            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Bold);
+            this.button1.Location = new System.Drawing.Point(829, 20);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(32, 109);
+            this.button1.TabIndex = 16;
+            this.button1.Text = "STOP";
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(874, 536);
+            this.ClientSize = new System.Drawing.Size(868, 536);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.pnlLoading);
             this.Controls.Add(this.grbActions);
             this.Controls.Add(this.grdSearchRes);
@@ -317,6 +331,7 @@
         private System.ComponentModel.BackgroundWorker exportWorker;
         private System.Windows.Forms.SaveFileDialog exportFileDialog;
         private System.Windows.Forms.CheckBox cboEnable;
+        private System.Windows.Forms.Button button1;
     }
 }
 

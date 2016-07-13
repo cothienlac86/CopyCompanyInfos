@@ -24,13 +24,12 @@ namespace CopyCompanyInfo.Boundary
 
         static readonly log4net.ILog CopyLogger =
                     log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Name);
-
-        static CompanyModel LastCompany = null;
-        DataTable dtCity = new DataTable();
-        DataTable dtDistrict = new DataTable();
-        DataTable dtSearchRes = new DataTable();
-        List<CompanyModel> lstCompany = new List<CompanyModel>();
-        bool isChecked = false;
+        private DataTable dtCity = new DataTable();
+        private DataTable dtDistrict = new DataTable();
+        private DataTable dtSearchRes = new DataTable();
+        private List<CompanyModel> lstCompany = new List<CompanyModel>();
+        private static CompanyModel LastCompany = null;
+        private bool isChecked = false;
         #endregion Private Fields
 
         #region Public Constructors
@@ -132,8 +131,6 @@ namespace CopyCompanyInfo.Boundary
             }
         }
 
-
-        DataTable lstData = new DataTable();
         protected void copyInfoWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             try
@@ -142,22 +139,50 @@ namespace CopyCompanyInfo.Boundary
 
                 if (!copyInfoWorker.CancellationPending)
                 {
-                    if (lstUrl != null)
+                    for (int i = 0; i < lstUrl.Rows.Count; i++)
                     {
-                        for (int i = 0; i < lstUrl.Rows.Count; i++)
+                        if (lstUrl != null)
                         {
-                            Thread.Sleep(250);
                             var copyPercent = (i * lstUrl.Rows.Count - 1) / 100;
                             copyInfoWorker.ReportProgress(copyPercent);
                             var url = lstUrl.Rows[i]["AreaUrl"].ToString();
                             int cityId = int.Parse(lstUrl.Rows[i]["ParentId"].ToString());
                             int districtId = int.Parse(lstUrl.Rows[i]["AreaId"].ToString());
-                            var dt = GetCompanyContent(url, cityId, districtId).ToDataTable();
-                            lstData.Merge(dt);
+                            var resultHtml = GetContent(url, ".thongtincongty.com");
+                            //using Html Agility Pack
+                            var doc = new HtmlAgilityPack.HtmlDocument();
+                            doc.LoadHtml(resultHtml);
+                            // Get city sub url
+                            var subUrl = "//div[@class='search-results']/a";
+                            CopyLogger.Debug("\n subUrl:" + subUrl);
+                            var rangeXPath = "/html/body/div/div[1]/ul/li[6]/a";
+                            int startPage = 1;
+                            int endPage = 0;
+                            CopyLogger.Debug("\n rangeXPath:" + rangeXPath);
+                            var rangeNode = doc.DocumentNode.SelectNodes(rangeXPath);
+                            // Get page number
+                            if (rangeNode != null)
+                            {
+                                foreach (var node in rangeNode)
+                                {
+                                    var rangLink = node.Attributes["href"].Value.Replace("\r", "").Replace("\n", "").Replace("&nbsp;", "").TrimStart().TrimEnd();
+                                    CopyLogger.Debug("\n rangLink:" + rangLink);
+                                    int index = rangLink.IndexOf("=", StringComparison.Ordinal) + 1;
+                                    endPage = int.Parse(rangLink.Substring(index));
+                                    CopyLogger.Debug("\n pageEnd:" + endPage);
+                                }
+                            }
+                            GetCompanyContent(url, cityId, districtId, startPage, endPage);
+                            Thread.Sleep(250);
+                            //lstData.Merge(dt);
                         }
                     }
                 }
-                e.Result = lstData as DataTable;
+                var dt = new DataTable();
+                if (lstCompany.Count > 0)
+                    dt = lstCompany.ToDataTable();
+                e.Result = dt;
+                CopyLogger.DebugFormat("List Company Count = {1} ------ Table Company Count = {1}", lstCompany.Count, dt.Rows.Count);
             }
             catch (Exception ex)
             {
@@ -181,7 +206,6 @@ namespace CopyCompanyInfo.Boundary
             }
         }
 
-
         protected void copyInfoWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             var dt = e.Result as DataTable;
@@ -199,7 +223,7 @@ namespace CopyCompanyInfo.Boundary
                 {
                     if (dt.Rows.Count > 0)
                     {
-
+                        lstCompany.Clear();
                         exportFileDialog.Title = "Chọn nơi lưu trữ file";
                         if (exportFileDialog.ShowDialog() == DialogResult.OK)
                         {
@@ -213,16 +237,13 @@ namespace CopyCompanyInfo.Boundary
                                     newFile = new FileInfo(fileName);
                                 }
                                 object[] objParams = new object[2];
-                                objParams[0] = dt as DataTable;
+                                objParams[0] = dt;
                                 objParams[1] = newFile as FileInfo;
                                 exportWorker.RunWorkerAsync(objParams);
-                                copyInfoWorker.Dispose();
                             }
                         }
-
                     }
                 }
-
             }
             catch (Exception ex)
             {
@@ -232,7 +253,7 @@ namespace CopyCompanyInfo.Boundary
             finally
             {
                 grdSearchRes.DataSource = dt;
-                lstData.Clear();
+                //lstData.Clear();
             }
         }
 
@@ -321,6 +342,7 @@ namespace CopyCompanyInfo.Boundary
                     grbActions.Enabled = false;
                     pcbLoading.Visible = true;
                     pnlLoading.Visible = true;
+                    lstCompany.Clear();
                     copyInfoWorker.RunWorkerAsync(dt);
                 }
             }
@@ -332,30 +354,33 @@ namespace CopyCompanyInfo.Boundary
             //if (exportFileDialog.ShowDialog() == DialogResult.OK)
             //{
             //}
-            if (!exportWorker.IsBusy)
+            if (dtSearchRes.Rows.Count > 0)
             {
-                grdSearchRes.Enabled = false;
-                pnlLoading.Visible = true;
-                pcbLoading.Visible = true;
-                grbActions.Enabled = false;
-                grpCopyCondition.Enabled = false;
-                lblLoading.Text = string.Empty;
-                exportFileDialog.FileName = "CompanyInformation_" + DateTime.Now.ToShortDateString();
-                if (exportFileDialog.ShowDialog() == DialogResult.OK)
+                if (!exportWorker.IsBusy)
                 {
-                    if (!exportWorker.CancellationPending)
+                    grdSearchRes.Enabled = false;
+                    pnlLoading.Visible = true;
+                    pcbLoading.Visible = true;
+                    grbActions.Enabled = false;
+                    grpCopyCondition.Enabled = false;
+                    lblLoading.Text = string.Empty;
+                    exportFileDialog.FileName = "CompanyInformation_" + DateTime.Now.ToShortDateString();
+                    if (exportFileDialog.ShowDialog() == DialogResult.OK)
                     {
-                        var fileName = exportFileDialog.FileName;
-                        var newFile = new FileInfo(fileName);
-                        if (newFile.Exists)
+                        if (!exportWorker.CancellationPending)
                         {
-                            newFile.Delete();  // ensures we create a new workbook
-                            newFile = new FileInfo(fileName);
+                            var fileName = exportFileDialog.FileName;
+                            var newFile = new FileInfo(fileName);
+                            if (newFile.Exists)
+                            {
+                                newFile.Delete();  // ensures we create a new workbook
+                                newFile = new FileInfo(fileName);
+                            }
+                            object[] objParams = new object[2];
+                            objParams[0] = dtSearchRes;
+                            objParams[1] = newFile;
+                            exportWorker.RunWorkerAsync(objParams);
                         }
-                        object[] objParams = new object[2];
-                        objParams[0] = dtSearchRes;
-                        objParams[1] = newFile;
-                        exportWorker.RunWorkerAsync(objParams);
                     }
                 }
             }
@@ -365,7 +390,7 @@ namespace CopyCompanyInfo.Boundary
         {
             try
             {
-                dtSearchRes = ExecuteSearch();
+                ExecuteSearch();
             }
             catch (Exception ex)
             {
@@ -374,18 +399,17 @@ namespace CopyCompanyInfo.Boundary
             }
         }
 
-        DataTable ExecuteSearch()
+        private void ExecuteSearch()
         {
-            DataTable dt = new DataTable();
             string query = " SELECT * FROM tblCompanyInfo ";
             if (cboCity.SelectedIndex == -1)
             {
                 MessageBox.Show("Xin hãy chọn lựa chọn tỉnh thành để tìm kiếm thông tin !",
                                     "Thông báo", MessageBoxButtons.OK);
                 cboCity.Focus();
-                return null;
+                return;
             }
-            query += string.Format(" WHERE CityId = '{0}'", cboCity.SelectedValue);
+            query += string.Format(" WHERE CityId = {0}", cboCity.SelectedValue);
             if (cboDistrict.SelectedIndex != -1)
             {
                 query += string.Format(" AND DistrictId = '{0}'", cboDistrict.SelectedValue);
@@ -399,9 +423,9 @@ namespace CopyCompanyInfo.Boundary
             dtSearchRes.Clear();
             var ds = DbHelper.ExecuteQuery(query);
             if (ds != null)
-                dt = ds.Tables[0];
-            grdSearchRes.DataSource = dt;
-            return dt;
+                dtSearchRes = ds.Tables[0];
+            grdSearchRes.DataSource = dtSearchRes;
+            //return dt;
         }
 
         void cboCity_SelectedIndexChanged(object sender, EventArgs e)
@@ -604,11 +628,30 @@ namespace CopyCompanyInfo.Boundary
             return lstCities;
         }
 
-        List<CompanyModel> GetCompanyContent(string url, int cityId, int districtId)
+        private void GetCompanyContent(string url, int cityId, int districtId, int startPage, int endPage)
         {
-            var lstCmp = new List<CompanyModel>();
+            //var lstCmp = new List<CompanyModel>();
             try
             {
+                bool isExists = false;
+                //var rangeXPath = "/html/body/div/div[1]/ul/li[6]/a";
+                //int startPage = 1;
+                //int endPage = 0;
+                //CopyLogger.Debug("\n rangeXPath:" + rangeXPath);
+                //var rangeNode = doc.DocumentNode.SelectNodes(rangeXPath);
+                //// Get page number
+                //if (rangeNode != null)
+                //{
+                //    foreach (var node in rangeNode)
+                //    {
+                //        var rangLink = node.Attributes["href"].Value.Replace("\r", "").Replace("\n", "").Replace("&nbsp;", "").TrimStart().TrimEnd();
+                //        CopyLogger.Debug("\n rangLink:" + rangLink);
+                //        int index = rangLink.IndexOf("=", StringComparison.Ordinal) + 1;
+                //        endPage = int.Parse(rangLink.Substring(index));
+                //        CopyLogger.Debug("\n pageEnd:" + endPage);
+                //    }
+                //}
+
                 var resultHtml = GetContent(url, ".thongtincongty.com");
                 //using Html Agility Pack
                 var doc = new HtmlAgilityPack.HtmlDocument();
@@ -616,25 +659,9 @@ namespace CopyCompanyInfo.Boundary
                 // Get city sub url
                 var subUrl = "//div[@class='search-results']/a";
                 CopyLogger.Debug("\n subUrl:" + subUrl);
-                var rangeXPath = "/html/body/div/div[1]/ul/li[6]/a";
-                int startPage = 1;
-                int endPage = 0;
-                CopyLogger.Debug("\n rangeXPath:" + rangeXPath);
-                var rangeNode = doc.DocumentNode.SelectNodes(rangeXPath);
-                // Get page number
-                if (rangeNode != null)
-                {
-                    foreach (var node in rangeNode)
-                    {
-                        var rangLink = node.Attributes["href"].Value.Replace("\r", "").Replace("\n", "").Replace("&nbsp;", "").TrimStart().TrimEnd();
-                        CopyLogger.Debug("\n rangLink:" + rangLink);
-                        int index = rangLink.IndexOf("=", StringComparison.Ordinal) + 1;
-                        endPage = int.Parse(rangLink.Substring(index));
-                        CopyLogger.Debug("\n pageEnd:" + endPage);
-                    }
-                }
+
                 // Start loop from 1 to n page
-                for (int i = startPage; i < 5; i++)
+                for (int i = 1 ; i <= endPage && !isExists; i++)
                 {
                     foreach (HtmlNode link in doc.DocumentNode.SelectNodes(subUrl))
                     {
@@ -705,7 +732,7 @@ namespace CopyCompanyInfo.Boundary
                             {
                                 company.RepresentPhone = string.Empty;
                             }
-                            if (string.IsNullOrEmpty(company.RepresentPhone)) continue;
+                            //if (string.IsNullOrEmpty(company.RepresentPhone)) continue;
                             // Get company address
                             var addXPath = "/html/body/div/div[1]/div[3]/text()[contains(., 'Địa chỉ:')]";
                             CopyLogger.Debug("\n addXPath:" + addXPath);
@@ -739,7 +766,7 @@ namespace CopyCompanyInfo.Boundary
                                         company.RepresentName = string.Empty;
                                 }
                             }
-                            if (string.IsNullOrEmpty(company.RepresentName)) continue;
+                            //if (string.IsNullOrEmpty(company.RepresentName)) continue;
                             // Get company activites date
                             var cpActivityDt = "/html/body/div/div[1]/div[3]/text()[contains(., 'Ngày hoạt động')]";
                             CopyLogger.Debug("\n cpActivityDt:" + cpActivityDt);
@@ -765,12 +792,14 @@ namespace CopyCompanyInfo.Boundary
                             if (IsExistsInDb(company))
                             {
                                 copyInfoWorker.CancelAsync();
-                                return lstCmp;
+                                isExists = true;
+                                return;
                             }
+                            if (string.IsNullOrEmpty(company.RepresentPhone)) continue;
                             // Insert to DB
                             InsertItem2Db(company);
-                            lstCmp.Add(company);
                             // Add to list
+                            lstCompany.Add(company);
                             Thread.Sleep(250);
                         }
                     }
@@ -781,7 +810,7 @@ namespace CopyCompanyInfo.Boundary
                 CopyLogger.Error(string.Format("Trace Error:{0} \n Error Message:{1}",
                     ex.ToString(), ex.Message));
             }
-            return lstCmp;
+            //return lstCmp;
         }
 
         /// <summary>
@@ -943,5 +972,10 @@ namespace CopyCompanyInfo.Boundary
         }
 
         #endregion Private Methods
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            copyInfoWorker.CancelAsync();
+        }
     }
 }
