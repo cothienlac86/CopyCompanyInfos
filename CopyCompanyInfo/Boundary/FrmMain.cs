@@ -148,31 +148,7 @@ namespace CopyCompanyInfo.Boundary
                             var url = lstUrl.Rows[i]["AreaUrl"].ToString();
                             int cityId = int.Parse(lstUrl.Rows[i]["ParentId"].ToString());
                             int districtId = int.Parse(lstUrl.Rows[i]["AreaId"].ToString());
-                            var resultHtml = GetContent(url, ".thongtincongty.com");
-                            //using Html Agility Pack
-                            var doc = new HtmlAgilityPack.HtmlDocument();
-                            doc.LoadHtml(resultHtml);
-                            // Get city sub url
-                            var subUrl = "//div[@class='search-results']/a";
-                            CopyLogger.Debug("\n subUrl:" + subUrl);
-                            var rangeXPath = "/html/body/div/div[1]/ul/li[6]/a";
-                            int startPage = 1;
-                            int endPage = 0;
-                            CopyLogger.Debug("\n rangeXPath:" + rangeXPath);
-                            var rangeNode = doc.DocumentNode.SelectNodes(rangeXPath);
-                            // Get page number
-                            if (rangeNode != null)
-                            {
-                                foreach (var node in rangeNode)
-                                {
-                                    var rangLink = node.Attributes["href"].Value.Replace("\r", "").Replace("\n", "").Replace("&nbsp;", "").TrimStart().TrimEnd();
-                                    CopyLogger.Debug("\n rangLink:" + rangLink);
-                                    int index = rangLink.IndexOf("=", StringComparison.Ordinal) + 1;
-                                    endPage = int.Parse(rangLink.Substring(index));
-                                    CopyLogger.Debug("\n pageEnd:" + endPage);
-                                }
-                            }
-                            GetCompanyContent(url, cityId, districtId, startPage, endPage);
+                            GetCompanyContent(url, cityId, districtId);
                             Thread.Sleep(250);
                             //lstData.Merge(dt);
                         }
@@ -628,30 +604,12 @@ namespace CopyCompanyInfo.Boundary
             return lstCities;
         }
 
-        private void GetCompanyContent(string url, int cityId, int districtId, int startPage, int endPage)
+        private void GetCompanyContent(string url, int cityId, int districtId)
         {
             //var lstCmp = new List<CompanyModel>();
             try
             {
                 bool isExists = false;
-                //var rangeXPath = "/html/body/div/div[1]/ul/li[6]/a";
-                //int startPage = 1;
-                //int endPage = 0;
-                //CopyLogger.Debug("\n rangeXPath:" + rangeXPath);
-                //var rangeNode = doc.DocumentNode.SelectNodes(rangeXPath);
-                //// Get page number
-                //if (rangeNode != null)
-                //{
-                //    foreach (var node in rangeNode)
-                //    {
-                //        var rangLink = node.Attributes["href"].Value.Replace("\r", "").Replace("\n", "").Replace("&nbsp;", "").TrimStart().TrimEnd();
-                //        CopyLogger.Debug("\n rangLink:" + rangLink);
-                //        int index = rangLink.IndexOf("=", StringComparison.Ordinal) + 1;
-                //        endPage = int.Parse(rangLink.Substring(index));
-                //        CopyLogger.Debug("\n pageEnd:" + endPage);
-                //    }
-                //}
-
                 var resultHtml = GetContent(url, ".thongtincongty.com");
                 //using Html Agility Pack
                 var doc = new HtmlAgilityPack.HtmlDocument();
@@ -659,9 +617,25 @@ namespace CopyCompanyInfo.Boundary
                 // Get city sub url
                 var subUrl = "//div[@class='search-results']/a";
                 CopyLogger.Debug("\n subUrl:" + subUrl);
-
+                var rangeXPath = "/html/body/div/div[1]/ul/li[6]/a";
+                int startPage = 1;
+                int endPage = 0;
+                CopyLogger.Debug("\n rangeXPath:" + rangeXPath);
+                var rangeNode = doc.DocumentNode.SelectNodes(rangeXPath);
+                // Get page number
+                if (rangeNode != null)
+                {
+                    foreach (var node in rangeNode)
+                    {
+                        var rangLink = node.Attributes["href"].Value.Replace("\r", "").Replace("\n", "").Replace("&nbsp;", "").TrimStart().TrimEnd();
+                        CopyLogger.Debug("\n rangLink:" + rangLink);
+                        int index = rangLink.IndexOf("=", StringComparison.Ordinal) + 1;
+                        endPage = int.Parse(rangLink.Substring(index));
+                        CopyLogger.Debug("\n pageEnd:" + endPage);
+                    }
+                }
                 // Start loop from 1 to n page
-                for (int i = 1 ; i <= endPage && !isExists; i++)
+                for (int i = 1; i <= endPage && !isExists; i++)
                 {
                     foreach (HtmlNode link in doc.DocumentNode.SelectNodes(subUrl))
                     {
