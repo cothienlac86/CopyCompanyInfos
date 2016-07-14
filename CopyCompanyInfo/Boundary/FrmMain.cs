@@ -154,6 +154,8 @@ namespace CopyCompanyInfo.Boundary
                         }
                     }
                 }
+                else
+                    e.Cancel = true;
                 var dt = new DataTable();
                 if (lstCompany.Count > 0)
                     dt = lstCompany.ToDataTable();
@@ -190,15 +192,23 @@ namespace CopyCompanyInfo.Boundary
                 grbActions.Enabled = true;
                 pcbLoading.Visible = false;
                 pnlLoading.Visible = false;
-                dtSearchRes.Clear();
-
-                lblLoading.Text = "Đã hoàn thành lọc dữ liệu...";
-                MessageBox.Show("Dữ liệu đã được lấy về. Ấn 'OK' để export dữ liệu..!");
+                if (e.Cancelled)
+                {
+                    lblLoading.Text = "Bạn đã dừng việc lấy dữ liệu.";
+                    MessageBox.Show("Dữ liệu đang được trích xuất ra file..!");
+                }
+                else
+                {
+                    lblLoading.Text = "Đã hoàn thành lọc dữ liệu...";
+                    MessageBox.Show("Dữ liệu đang được trích xuất ra file..!");
+                }
                 exportFileDialog.FileName = "CompanyInformation_" + DateTime.Now.ToShortDateString();
                 if (dt != null)
                 {
+
                     if (dt.Rows.Count > 0)
                     {
+                        grdSearchRes.DataSource = dt;
                         lstCompany.Clear();
                         exportFileDialog.Title = "Chọn nơi lưu trữ file";
                         if (exportFileDialog.ShowDialog() == DialogResult.OK)
@@ -220,16 +230,14 @@ namespace CopyCompanyInfo.Boundary
                         }
                     }
                 }
+                else
+                    grdSearchRes.DataSource = null;
+                copyInfoWorker.Dispose();
             }
             catch (Exception ex)
             {
                 CopyLogger.Error(string.Format("Trace Error:{0} \n Error Message:{1}",
                     ex.ToString(), ex.Message));
-            }
-            finally
-            {
-                grdSearchRes.DataSource = dt;
-                //lstData.Clear();
             }
         }
 
@@ -283,6 +291,7 @@ namespace CopyCompanyInfo.Boundary
                 grpCopyCondition.Enabled = true;
                 lblLoading.Text = string.Empty;
                 MessageBox.Show("Xuất dữ liệu ra excel đã hoàn thành.");
+                exportWorker.Dispose();
             }
             catch (Exception ex)
             {
@@ -615,8 +624,8 @@ namespace CopyCompanyInfo.Boundary
                 var doc = new HtmlAgilityPack.HtmlDocument();
                 doc.LoadHtml(resultHtml);
                 // Get city sub url
-                var subUrl = "//div[@class='search-results']/a";
-                CopyLogger.Debug("\n subUrl:" + subUrl);
+                //var subUrl = "//div[@class='search-results']/a";
+                //CopyLogger.Debug("\n subUrl:" + subUrl);
                 var rangeXPath = "/html/body/div/div[1]/ul/li[6]/a";
                 int startPage = 1;
                 int endPage = 0;
@@ -637,7 +646,13 @@ namespace CopyCompanyInfo.Boundary
                 // Start loop from 1 to n page
                 for (int i = 1; i <= endPage && !isExists; i++)
                 {
-                    foreach (HtmlNode link in doc.DocumentNode.SelectNodes(subUrl))
+                    var pageUrl = string.Format("{0}?page={1}", url, i);
+                    var pageResHtml = GetContent(pageUrl, ".thongtincongty.com");
+                    var pageDoc = new HtmlAgilityPack.HtmlDocument();
+                    pageDoc.LoadHtml(pageResHtml);
+                    var companyLinkXPath = "//div[@class='search-results']/a";
+
+                    foreach (HtmlNode link in pageDoc.DocumentNode.SelectNodes(companyLinkXPath))
                     {
                         var company = new CompanyModel();
                         // Get details company link
@@ -949,7 +964,9 @@ namespace CopyCompanyInfo.Boundary
 
         private void button1_Click(object sender, EventArgs e)
         {
-            copyInfoWorker.CancelAsync();
+            this.copyInfoWorker.WorkerSupportsCancellation = true;
+            this.copyInfoWorker.CancelAsync();
+            this.copyInfoWorker.Dispose();
         }
     }
 }

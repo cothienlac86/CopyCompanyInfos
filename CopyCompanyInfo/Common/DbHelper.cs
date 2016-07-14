@@ -49,12 +49,10 @@ namespace CopyCompanyInfo.Common
                 CopyLogger.Error(string.Format("Trace Error:{0} \n Error Message:{1}",
                     ex.ToString(), ex.Message));
             }
-
         }
 
         public static DataSet ExecuteQuery(string statment)
         {
-
             var sqlCon = GetConnection();
             var sqlCmd = new SQLiteCommand();
             DataSet result = new DataSet();
