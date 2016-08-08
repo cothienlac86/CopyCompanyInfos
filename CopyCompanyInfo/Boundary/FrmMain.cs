@@ -148,9 +148,6 @@ namespace CopyCompanyInfo.Boundary
                             var url = lstUrl.Rows[i]["AreaUrl"].ToString();
                             int cityId = int.Parse(lstUrl.Rows[i]["ParentId"].ToString());
                             int districtId = int.Parse(lstUrl.Rows[i]["AreaId"].ToString());
-                            GetCompanyContent(url, cityId, districtId);
-                            Thread.Sleep(250);
-                            //lstData.Merge(dt);
                         }
                     }
                 }
@@ -899,7 +896,8 @@ namespace CopyCompanyInfo.Boundary
             if (model != null)
             {
                 var query = "INSERT INTO tblCompanyInfo (CompanyName, CompanyAddress, RepresentName, RepresentPhone,  IssuedDate, AcitivitiesDate, CityId, DistrictId) VALUES ";
-                query += string.Format("('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', {6}, {7}) ",
+                query += string.Format("('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', {7}) ",
+
                             model.CompanyName, model.CompanyAddress, model.RepresentName, model.RepresentPhone, model.IssuedDate, model.ActivitiesDate, model.CityId, model.DistrictId);
                 CopyLogger.Info("\n Insert Query:" + query);
                 DbHelper.ExecuteNoneQuery(query);
@@ -908,8 +906,8 @@ namespace CopyCompanyInfo.Boundary
 
         bool IsExistsInDb(CompanyModel model)
         {
-            var checkQuery = string.Format("SELECT COUNT(*) FROM tblCompanyInfo WHERE CompanyName = '{0}' AND RepresentName = '{1}' AND RepresentPhone = '{2}'",
-                                                model.CompanyName, model.RepresentName, model.CityId, model.RepresentPhone);
+            var checkQuery = string.Format("SELECT COUNT(*) FROM tblLastCompany WHERE CompanyName = '{0}' AND RepresentName = '{1}' AND RepresentPhone = {2}",
+                                                model.CompanyName, model.RepresentName, model.RepresentName, model.RepresentPhone);
             var countVal = int.Parse(DbHelper.ExecuteScalar(checkQuery).ToString());
             if (countVal > 0)
                 return true;

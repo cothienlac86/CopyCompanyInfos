@@ -15,10 +15,11 @@ namespace CopyCompanyInfo.Common
         {
             try
             {
-                var baseDir = AppDomain.CurrentDomain.BaseDirectory + @"\Database\CompanyInfo.sqlite";
+
+                var dbPath = Environment.CurrentDirectory + @"\Database\CompanyInfo.sqlite";
                 if (m_Connection == null)
                 {
-                    m_Connection = new SQLiteConnection(string.Format("Data Source={0};Version=3;Initial Catalog=main;UseUTF16Encoding=True;", baseDir));
+                    m_Connection = new SQLiteConnection(string.Format("Data Source={0};Version=3;Initial Catalog=main;UseUTF16Encoding=True;",dbPath));
                     if (m_Connection.State == ConnectionState.Closed)
                         m_Connection.Open();
                 }
